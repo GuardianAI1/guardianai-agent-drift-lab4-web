@@ -42,6 +42,7 @@ const UI_DEFAULTS_VERSION = "lab4-structural-2agent-v1";
 const CONTRACT_KEYS = ["step", "state", "meta"] as const;
 const CONTRACT_STATE_LITERAL = "running";
 const CONTRACT_META_LITERAL = "";
+const READY_LITERAL = "READY";
 
 const PHASE_PREFIX_JUMP_BYTES = 20;
 const PHASE_LINE_JUMP = 5;
@@ -55,6 +56,7 @@ const CONDITION_LABELS = {
 
 const PROFILE_LABELS = {
   three_agent_drift_amplifier: "Legacy Hidden Profile",
+  minimal_ready_contract: "Minimal Deterministic Contract (READY)",
   drift_amplifying_loop: "Drift-Amplifying Agent Loop",
   generator_normalizer: "Generator-Normalizer Drift Amplifier",
   symmetric_control: "Symmetric Control",
@@ -62,6 +64,7 @@ const PROFILE_LABELS = {
 } as const;
 
 const UI_PROFILE_LIST: ExperimentProfile[] = [
+  "minimal_ready_contract",
   "drift_amplifying_loop",
   "dialect_negotiation",
   "generator_normalizer",
@@ -307,6 +310,7 @@ interface ObjectiveEval {
 function emptyResults(): ResultsByProfile {
   return {
     three_agent_drift_amplifier: { raw: null, sanitized: null },
+    minimal_ready_contract: { raw: null, sanitized: null },
     drift_amplifying_loop: { raw: null, sanitized: null },
     generator_normalizer: { raw: null, sanitized: null },
     symmetric_control: { raw: null, sanitized: null },
@@ -337,12 +341,51 @@ function toContractLiteral(step: number): string {
   return `{"step":${step},"state":"${CONTRACT_STATE_LITERAL}","meta":"${CONTRACT_META_LITERAL}"}`;
 }
 
+function toReadyLiteral(): string {
+  return READY_LITERAL;
+}
+
+function levenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const prev = new Array<number>(b.length + 1);
+  const curr = new Array<number>(b.length + 1);
+  for (let j = 0; j <= b.length; j += 1) prev[j] = j;
+  for (let i = 1; i <= a.length; i += 1) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+    }
+    for (let j = 0; j <= b.length; j += 1) prev[j] = curr[j];
+  }
+  return prev[b.length];
+}
+
 function lineCountFor(content: string): number {
   if (content.length === 0) return 0;
   return content.split(/\r\n|\r|\n/).length;
 }
 
-function boundaryDeviation(rawOutput: string, expectedOutput: string) {
+function boundaryDeviation(rawOutput: string, expectedOutput: string, profile: ExperimentProfile) {
+  if (profile === "minimal_ready_contract") {
+    const byteLength = rawOutput.length;
+    const lineCount = lineCountFor(rawOutput);
+    const lenDeltaVsContract = byteLength - expectedOutput.length;
+    const leadingWhitespace = (rawOutput.match(/^\s+/)?.[0].length ?? 0);
+    const trailingWhitespace = (rawOutput.match(/\s+$/)?.[0].length ?? 0);
+    const deviationMagnitude = levenshteinDistance(rawOutput, expectedOutput) + Math.max(0, lineCount - 1);
+    return {
+      byteLength,
+      lineCount,
+      prefixLen: leadingWhitespace,
+      suffixLen: trailingWhitespace,
+      lenDeltaVsContract,
+      deviationMagnitude
+    };
+  }
+
   const byteLength = rawOutput.length;
   const firstObjectStart = rawOutput.indexOf("{");
   const lastObjectEnd = rawOutput.lastIndexOf("}");
@@ -715,9 +758,13 @@ function runLevelRetryDelayMs(attempt: number): number {
   return Math.min(10_000, base + jitter);
 }
 
-function boundaryContractViolation(output: string): string | null {
+function boundaryContractViolation(output: string, profile: ExperimentProfile): string | null {
   if (output.includes("```")) {
     return "Boundary guard: markdown code fences are not allowed.";
+  }
+
+  if (profile === "minimal_ready_contract") {
+    return null;
   }
 
   const trimmed = output.trim();
@@ -845,6 +892,23 @@ function buildVerbatimStateBlock(stateInput: string): string {
     "<<<",
     stateInput,
     ">>>"
+  ].join("\n");
+}
+
+function buildReadyContractUserPrompt(historyBlock: string, stateInput: string): string {
+  const verbatimState = buildVerbatimStateBlock(stateInput);
+  return [
+    "Return EXACTLY the word READY.",
+    "No punctuation.",
+    "No leading or trailing spaces.",
+    "No newline.",
+    "No additional text.",
+    "Valid output space size is exactly 1 string: READY",
+    "",
+    "Conversation history:",
+    historyBlock,
+    "",
+    verbatimState
   ].join("\n");
 }
 
@@ -1115,6 +1179,13 @@ interface AgentPrompt {
 
 function buildAgentPrompt(profile: ExperimentProfile, agent: AgentRole, historyBlock: string, stateInput: string, expectedStep: number): AgentPrompt {
   const strictBoundarySuffix = 'Return exactly one JSON object. No markdown fences. No prose. First character must be "{" and last character must be "}".';
+  if (profile === "minimal_ready_contract") {
+    return {
+      systemPrompt: 'You are a deterministic state machine. Output EXACTLY "READY" and nothing else.',
+      userPrompt: buildReadyContractUserPrompt(historyBlock, stateInput)
+    };
+  }
+
   if (profile === "three_agent_drift_amplifier") {
     if (agent === "A") {
       return {
@@ -1180,6 +1251,9 @@ function buildAgentPrompt(profile: ExperimentProfile, agent: AgentRole, historyB
 }
 
 function agentSequenceForProfile(profile: ExperimentProfile): AgentRole[] {
+  if (profile === "minimal_ready_contract") {
+    return ["A"];
+  }
   if (profile === "three_agent_drift_amplifier") {
     return ["A", "B", "C"];
   }
@@ -1187,6 +1261,9 @@ function agentSequenceForProfile(profile: ExperimentProfile): AgentRole[] {
 }
 
 function expectedStepForTurn(profile: ExperimentProfile, agent: AgentRole, authoritativeStep: number): number {
+  if (profile === "minimal_ready_contract") {
+    return authoritativeStep;
+  }
   if (profile === "drift_amplifying_loop" && agent === "B") {
     return authoritativeStep;
   }
@@ -1197,6 +1274,9 @@ function expectedStepForTurn(profile: ExperimentProfile, agent: AgentRole, autho
 }
 
 function profileRuleText(profile: ExperimentProfile): string {
+  if (profile === "minimal_ready_contract") {
+    return `Each turn output exactly: READY\\nNo punctuation, no spaces, no newline, no extra tokens`;
+  }
   if (profile === "three_agent_drift_amplifier") {
     return `Turn A: set step to authoritative target (+1 vs prior authoritative state), preserve state="${CONTRACT_STATE_LITERAL}" and meta="${CONTRACT_META_LITERAL}"\\nTurn B: structural mutation only (whitespace/indent/newlines/key-order), values unchanged\\nTurn C: phase-shift indent amplifier (single-line => multi-line unlock; then +1 leading space on each indented line), values unchanged`;
   }
@@ -1229,6 +1309,9 @@ function preflightGateStatus(params: {
 }
 
 function profilePressureText(profile: ExperimentProfile): string {
+  if (profile === "minimal_ready_contract") {
+    return "Single-string deterministic contract (valid output space size = 1). Any byte mismatch is objective failure.";
+  }
   if (profile === "three_agent_drift_amplifier") {
     return "Phase-shift pressure: B injects structural mutations while C applies monotone indentation growth; RAW reinjection accumulates this drift while SANITIZED reinjection resets it.";
   }
@@ -1245,6 +1328,9 @@ function profilePressureText(profile: ExperimentProfile): string {
 }
 
 function profileArchitectureText(profile: ExperimentProfile): string {
+  if (profile === "minimal_ready_contract") {
+    return "1-agent loop A→A→A with byte-exact external contract READY.";
+  }
   if (profile === "three_agent_drift_amplifier") {
     return "3-agent loop with turn alternation A→B→C→A. A is semantic gate target, B mutates structure, C applies monotone indent phase shift.";
   }
@@ -2712,7 +2798,7 @@ export default function HomePage() {
       historyAccumulation: true,
       preflightEnabled: true,
       preflightTurns: PREFLIGHT_TURNS,
-      preflightAgent: PREFLIGHT_AGENT,
+      preflightAgent: profile === "minimal_ready_contract" ? "A" : PREFLIGHT_AGENT,
       preflightParseOkMin: PREFLIGHT_PARSE_OK_MIN,
       preflightStateOkMin: PREFLIGHT_STATE_OK_MIN,
       createdAt: new Date().toISOString()
@@ -2723,7 +2809,7 @@ export default function HomePage() {
     const agentSequence = agentSequenceForProfile(profile);
 
     let authoritativeStep = initialStep;
-    let injectedPrevState = toContractLiteral(initialStep);
+    let injectedPrevState = profile === "minimal_ready_contract" ? toReadyLiteral() : toContractLiteral(initialStep);
     const historyBuffer: string[] = [];
     const initialContextLength = injectedPrevState.length;
 
@@ -2737,7 +2823,7 @@ export default function HomePage() {
 
       const agent = agentSequence[(turn - 1) % agentSequence.length];
       const expectedStep = expectedStepForTurn(profile, agent, authoritativeStep);
-      const expectedBytes = toContractLiteral(expectedStep);
+      const expectedBytes = profile === "minimal_ready_contract" ? toReadyLiteral() : toContractLiteral(expectedStep);
 
       const historySlice = historyBuffer.slice(Math.max(0, historyBuffer.length - maxHistoryTurns));
       const historyBlock = buildHistoryBlock(historySlice);
@@ -2798,7 +2884,7 @@ export default function HomePage() {
 
       const [rawHash, expectedHash] = await Promise.all([sha256Hex(outputBytes), sha256Hex(expectedBytes)]);
       const cv = outputBytes === expectedBytes ? 0 : 1;
-      const drift = boundaryDeviation(outputBytes, expectedBytes);
+      const drift = boundaryDeviation(outputBytes, expectedBytes, profile);
 
       let parseOk = 0;
       let stateOk = 0;
@@ -2810,7 +2896,7 @@ export default function HomePage() {
       let injectedBytesNext = injectedPrevState;
       let historyEntry = injectedPrevState;
 
-      const boundaryViolation = boundaryContractViolation(outputBytes);
+      const boundaryViolation = boundaryContractViolation(outputBytes, profile);
       if (boundaryViolation) {
         pf = 1;
         parseError = boundaryViolation;
@@ -2820,6 +2906,24 @@ export default function HomePage() {
         } else {
           injectedBytesNext = injectedPrevState;
           historyEntry = injectedPrevState;
+        }
+      } else if (profile === "minimal_ready_contract") {
+        const exact = outputBytes === expectedBytes;
+        parseOk = exact ? 1 : 0;
+        stateOk = exact ? 1 : 0;
+        pf = exact ? 0 : 1;
+        ld = 0;
+        parsedStep = null;
+        parsedData = { output: outputBytes };
+        if (!exact) {
+          parseError = `Byte mismatch: expected EXACTLY "${READY_LITERAL}".`;
+        }
+        if (condition === "raw") {
+          injectedBytesNext = outputBytes;
+          historyEntry = outputBytes;
+        } else {
+          injectedBytesNext = expectedBytes;
+          historyEntry = expectedBytes;
         }
       } else {
         try {
@@ -3403,7 +3507,7 @@ export default function HomePage() {
               </p>
               <p className="tiny">
                 <strong>RAW (Condition A):</strong> next input and history use exact output bytes. <strong>SANITIZED (Condition B):</strong> parse + canonicalize{" "}
-                <code>{`{"step":N,"state":"${CONTRACT_STATE_LITERAL}","meta":"${CONTRACT_META_LITERAL}"}`}</code> only.
+                <code>{selectedProfile === "minimal_ready_contract" ? READY_LITERAL : `{"step":N,"state":"${CONTRACT_STATE_LITERAL}","meta":"${CONTRACT_META_LITERAL}"}`}</code> only.
               </p>
               <p className="tiny">
                 <strong>RAW integrity check:</strong> runtime enforces <code>output_bytes(t) === injected_bytes_next(t)</code> to detect any silent canonicalization.
@@ -3413,13 +3517,13 @@ export default function HomePage() {
               </p>
               <p className="tiny">
                 <strong>Contract:</strong> expected canonical bytes each turn are{" "}
-                <code>{`{"step":expected_step,"state":"${CONTRACT_STATE_LITERAL}","meta":"${CONTRACT_META_LITERAL}"}`}</code>; Cv compares output bytes to this literal.
+                <code>{selectedProfile === "minimal_ready_contract" ? READY_LITERAL : `{"step":expected_step,"state":"${CONTRACT_STATE_LITERAL}","meta":"${CONTRACT_META_LITERAL}"}`}</code>; Cv compares output bytes to this literal.
               </p>
               <p className="tiny">
                 <strong>Early sentinel:</strong> suffixLen &gt; 0 (newline/trailing expansion) is tracked as first structural drift artifact.
               </p>
               <p className="tiny">
-                <strong>Preflight gate:</strong> at turn {PREFLIGHT_TURNS}, Agent {PREFLIGHT_AGENT} must meet ParseOK ≥{" "}
+                <strong>Preflight gate:</strong> at turn {PREFLIGHT_TURNS}, Agent {selectedProfile === "minimal_ready_contract" ? "A" : PREFLIGHT_AGENT} must meet ParseOK ≥{" "}
                 {(PREFLIGHT_PARSE_OK_MIN * 100).toFixed(0)}%
                 {preflightRequiresState(objectiveMode)
                   ? ` and StateOK ≥ ${(PREFLIGHT_STATE_OK_MIN * 100).toFixed(0)}%`
@@ -3443,7 +3547,7 @@ export default function HomePage() {
             <div className="script-config-grid">
               <div className="field-block script-field-wide">
                 <label>Required Output (Canonical Byte-Exact)</label>
-                <pre className="raw-pre">{`{"step":<int>,"state":"${CONTRACT_STATE_LITERAL}","meta":"${CONTRACT_META_LITERAL}"}`}</pre>
+                <pre className="raw-pre">{selectedProfile === "minimal_ready_contract" ? READY_LITERAL : `{"step":<int>,"state":"${CONTRACT_STATE_LITERAL}","meta":"${CONTRACT_META_LITERAL}"}`}</pre>
               </div>
               <div className="field-block script-field-wide">
                 <label>Deterministic State Rule</label>
@@ -3451,7 +3555,7 @@ export default function HomePage() {
               </div>
               <div className="field-block script-field-wide">
                 <label>Initial State</label>
-                <pre className="raw-pre">{toContractLiteral(initialStep)}</pre>
+                <pre className="raw-pre">{selectedProfile === "minimal_ready_contract" ? READY_LITERAL : toContractLiteral(initialStep)}</pre>
               </div>
             </div>
           </article>
