@@ -2644,7 +2644,6 @@ export default function HomePage() {
   const [model, setModel] = useState<string>(DEFAULT_MODEL);
 
   const [selectedProfile, setSelectedProfile] = useState<ExperimentProfile>(DEFAULT_PROFILE);
-  const [viewProfile, setViewProfile] = useState<ExperimentProfile>(DEFAULT_PROFILE);
   const [objectiveMode, setObjectiveMode] = useState<ObjectiveMode>("parse_only");
 
   const [selectedCondition, setSelectedCondition] = useState<RepCondition>("raw");
@@ -2736,17 +2735,17 @@ export default function HomePage() {
         : "Provided"
       : providerOptions.find((item) => item.value === apiProvider)?.label ?? "Provided";
 
-  const profileResults = results[viewProfile];
+  const profileResults = results[selectedProfile];
   const rawSummary = profileResults.raw;
   const sanitizedSummary = profileResults.sanitized;
   const smokingGunEval = evaluateSmokingGun(rawSummary, sanitizedSummary);
 
   const selectedTraces = useMemo(() => {
-    const traces = results[viewProfile][traceCondition]?.traces ?? [];
+    const traces = results[selectedProfile][traceCondition]?.traces ?? [];
     return historyOrder === "newest" ? traces.slice().reverse() : traces;
-  }, [historyOrder, results, traceCondition, viewProfile]);
+  }, [historyOrder, results, traceCondition, selectedProfile]);
 
-  const latestTrace = activeTrace ?? results[viewProfile][traceCondition]?.traces.at(-1) ?? null;
+  const latestTrace = activeTrace ?? results[selectedProfile][traceCondition]?.traces.at(-1) ?? null;
 
   function setNormalizedApiKey(rawValue: string) {
     setApiKey(normalizeApiKeyInput(rawValue));
@@ -3116,7 +3115,6 @@ export default function HomePage() {
     setIsRunning(true);
     setErrorMessage(null);
     runControlRef.current.cancelled = false;
-    setViewProfile(selectedProfile);
     setTraceCondition(selectedCondition);
     setRunPhaseText(`${PROFILE_LABELS[selectedProfile]} — ${CONDITION_LABELS[selectedCondition]}`);
 
@@ -3136,7 +3134,6 @@ export default function HomePage() {
 
     for (const condition of ["raw", "sanitized"] as const) {
       if (runControlRef.current.cancelled) break;
-      setViewProfile(profile);
       setTraceCondition(condition);
       setRunPhaseText(`${PROFILE_LABELS[profile]} — ${CONDITION_LABELS[condition]}`);
       try {
@@ -3176,7 +3173,6 @@ export default function HomePage() {
   function resetAll() {
     stopRun();
     setSelectedProfile(DEFAULT_PROFILE);
-    setViewProfile(DEFAULT_PROFILE);
     setResults(emptyResults());
     setActiveTrace(null);
     setErrorMessage(null);
@@ -3196,7 +3192,7 @@ export default function HomePage() {
   }
 
   function downloadTrace(condition: RepCondition) {
-    const summary = results[viewProfile][condition];
+    const summary = results[selectedProfile][condition];
     if (!summary) return;
     downloadTextFile(`trace_${condition}.jsonl`, traceToJsonl(summary), "application/x-ndjson");
   }
@@ -3345,7 +3341,7 @@ export default function HomePage() {
       <section className="subtitle-row">
         <span>Agent Lab Suite v1 — Multi-Agent Boundary Drift</span>
         <span>
-          View: {PROFILE_LABELS[viewProfile]} | Objective: {OBJECTIVE_MODE_LABELS[objectiveMode]} | Deterministic decoding enforced
+          Profile: {PROFILE_LABELS[selectedProfile]} | Objective: {OBJECTIVE_MODE_LABELS[objectiveMode]} | Deterministic decoding enforced
         </span>
       </section>
 
@@ -3486,16 +3482,6 @@ export default function HomePage() {
                 </select>
               </div>
 
-              <div className="field-block">
-                <label>View Profile</label>
-                <select value={viewProfile} onChange={(event) => setViewProfile(event.target.value as ExperimentProfile)} disabled={isRunning}>
-                  {UI_PROFILE_LIST.map((value) => (
-                    <option key={value} value={value}>
-                      {PROFILE_LABELS[value]}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
 
             <div className="policy-inline">
@@ -3570,7 +3556,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="raw-live-head-meta">
-              <span>Profile: {PROFILE_LABELS[viewProfile]}</span>
+              <span>Profile: {PROFILE_LABELS[selectedProfile]}</span>
               <span>Condition: {latestTrace ? CONDITION_LABELS[latestTrace.condition] : "n/a"}</span>
             </div>
           </header>
@@ -3668,9 +3654,9 @@ export default function HomePage() {
             </article>
 
             <article className="raw-panel">
-              <h4>Panel 4 - Condition Metrics ({PROFILE_LABELS[viewProfile]})</h4>
+              <h4>Panel 4 - Condition Metrics ({PROFILE_LABELS[selectedProfile]})</h4>
               {(["raw", "sanitized"] as const).map((condition) => {
-                const summary = results[viewProfile][condition];
+                const summary = results[selectedProfile][condition];
                 return (
                   <div key={condition} className="policy-inline">
                     <p className="tiny">
@@ -3715,16 +3701,6 @@ export default function HomePage() {
           <header className="panel-header-row">
             <h3>Trace Stream</h3>
             <div className="row-actions">
-              <label className="order-control">
-                <span>Profile</span>
-                <select value={viewProfile} onChange={(event) => setViewProfile(event.target.value as ExperimentProfile)}>
-                  {UI_PROFILE_LIST.map((value) => (
-                    <option key={value} value={value}>
-                      {PROFILE_LABELS[value]}
-                    </option>
-                  ))}
-                </select>
-              </label>
               <label className="order-control">
                 <span>Condition</span>
                 <select value={traceCondition} onChange={(event) => setTraceCondition(event.target.value as RepCondition)}>
@@ -3775,7 +3751,7 @@ export default function HomePage() {
                 <p className="muted">
                   Objective: {OBJECTIVE_MODE_LABELS[objectiveMode]} ({objectiveLabel(objectiveMode)})
                 </p>
-                <p className="muted">Objective scope: {objectiveScopeLabel(viewProfile)}</p>
+                <p className="muted">Objective scope: {objectiveScopeLabel(selectedProfile)}</p>
               </div>
             </div>
           </header>
@@ -3804,12 +3780,12 @@ export default function HomePage() {
               valueFor={(trace) => trace.uptime}
               fixedMax={1}
             />
-            <DriftUptimeDivergenceChart summary={results[viewProfile][traceCondition]} />
+            <DriftUptimeDivergenceChart summary={results[selectedProfile][traceCondition]} />
             <DriftPhasePlot rawSummary={rawSummary} sanitizedSummary={sanitizedSummary} />
-            <EdgeTransferPanel profile={viewProfile} rawSummary={rawSummary} sanitizedSummary={sanitizedSummary} />
+            <EdgeTransferPanel profile={selectedProfile} rawSummary={rawSummary} sanitizedSummary={sanitizedSummary} />
 
             {(["raw", "sanitized"] as const).map((condition) => {
-              const summary = results[viewProfile][condition];
+              const summary = results[selectedProfile][condition];
               const statusClass = !summary ? "warn" : summary.failed ? "bad" : "good";
               return (
                 <section key={condition} className="decision-card">
