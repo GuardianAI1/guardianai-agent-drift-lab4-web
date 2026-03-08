@@ -63,6 +63,9 @@ const PROFILE_LABELS = {
   belief_drift_triangle_3agent: "LAB4 - Topology Chain (REP)",
   belief_drift_triangle_3agent_isolation: "LAB4 - Topology Ring (REP)",
   belief_drift_triangle_9agent_isolation: "LAB4 - Topology Star (REP)",
+  belief_drift_triangle_3agent_param: "LAB4 - Topology Chain (REP, perturbation_turn)",
+  belief_drift_triangle_3agent_isolation_param: "LAB4 - Topology Ring (REP, perturbation_turn)",
+  belief_drift_triangle_9agent_isolation_param: "LAB4 - Topology Star (REP, perturbation_turn)",
   belief_drift_triangle_27agent_isolation: "LAB3 - Propagation Isolation (27-Agent)",
   belief_drift_triangle_9agent: "Canonical Drift Run (9-Agent)",
   belief_drift_triangle_27agent: "Canonical Drift Run (27-Agent)",
@@ -84,6 +87,9 @@ const PUBLIC_PROFILE_IDS: Record<ExperimentProfile, string> = {
   belief_drift_triangle_3agent: "lab4_topology_chain_rep",
   belief_drift_triangle_3agent_isolation: "lab4_topology_ring_rep",
   belief_drift_triangle_9agent_isolation: "lab4_topology_star_rep",
+  belief_drift_triangle_3agent_param: "lab4_topology_chain_rep_param_turn",
+  belief_drift_triangle_3agent_isolation_param: "lab4_topology_ring_rep_param_turn",
+  belief_drift_triangle_9agent_isolation_param: "lab4_topology_star_rep_param_turn",
   belief_drift_triangle_27agent_isolation: "lab3_propagation_isolation_27agent",
   belief_drift_triangle_9agent: "canonical_drift_9agent",
   belief_drift_triangle_27agent: "canonical_drift_27agent",
@@ -116,7 +122,10 @@ function detectLabSurface(hostname: string): LabSurface {
 const UI_PROFILE_LIST: ExperimentProfile[] = [
   "belief_drift_triangle_3agent",
   "belief_drift_triangle_3agent_isolation",
-  "belief_drift_triangle_9agent_isolation"
+  "belief_drift_triangle_9agent_isolation",
+  "belief_drift_triangle_3agent_param",
+  "belief_drift_triangle_3agent_isolation_param",
+  "belief_drift_triangle_9agent_isolation_param"
 ];
 
 const CONSENSUS_STANCES = ["support", "reject", "revise"] as const;
@@ -264,6 +273,9 @@ type Triangle3AgentProfile =
   | "belief_drift_triangle_3agent"
   | "belief_drift_triangle_3agent_isolation"
   | "belief_drift_triangle_9agent_isolation"
+  | "belief_drift_triangle_3agent_param"
+  | "belief_drift_triangle_3agent_isolation_param"
+  | "belief_drift_triangle_9agent_isolation_param"
   | "belief_drift_triangle_27agent_isolation"
   | "belief_drift_triangle_9agent"
   | "belief_drift_triangle_27agent"
@@ -276,6 +288,9 @@ const TRIANGLE_3_AGENT_PROFILES: readonly Triangle3AgentProfile[] = [
   "belief_drift_triangle_3agent",
   "belief_drift_triangle_3agent_isolation",
   "belief_drift_triangle_9agent_isolation",
+  "belief_drift_triangle_3agent_param",
+  "belief_drift_triangle_3agent_isolation_param",
+  "belief_drift_triangle_9agent_isolation_param",
   "belief_drift_triangle_27agent_isolation",
   "belief_drift_triangle_9agent",
   "belief_drift_triangle_27agent",
@@ -289,7 +304,7 @@ const TRIANGLE_3_AGENT_PROFILE_SET = new Set<ExperimentProfile>(TRIANGLE_3_AGENT
 
 function triangleAgentCountForProfile(profile: ExperimentProfile): number {
   if (profile === "belief_drift_triangle_9agent") return 9;
-  if (profile === "belief_drift_triangle_9agent_isolation") return 4;
+  if (profile === "belief_drift_triangle_9agent_isolation" || profile === "belief_drift_triangle_9agent_isolation_param") return 4;
   if (profile === "belief_drift_triangle_27agent" || profile === "belief_drift_triangle_27agent_isolation") return 27;
   return 3;
 }
@@ -352,6 +367,45 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
     objective: "Measure propagation and lock-in under star topology with hub-mediated reinforcement.",
     summary:
       "Turns 1-5 keep ground-truth value stable, turn 6 injects a +10% value error once, then star-mode hub interactions test rapid amplification and lock-in behavior."
+  },
+  belief_drift_triangle_3agent_param: {
+    title: "LAB4 - Topology Chain (REP, perturbation_turn)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: TRIANGLE_ESCALATION_DELTA, B: TRIANGLE_ESCALATION_DELTA, C: TRIANGLE_ESCALATION_DELTA },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective: "Measure baseline propagation and lock-in under sequential chain topology (A -> B -> C).",
+    summary:
+      "Same chain script with user-controlled perturbation_turn while agents, topology, schema, temperature, and perturbation value remain fixed."
+  },
+  belief_drift_triangle_3agent_isolation_param: {
+    title: "LAB4 - Topology Ring (REP, perturbation_turn)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: TRIANGLE_ESCALATION_DELTA, B: TRIANGLE_ESCALATION_DELTA, C: TRIANGLE_ESCALATION_DELTA },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective: "Measure propagation and lock-in under ring topology with continuous recursive updates.",
+    summary:
+      "Same ring script with user-controlled perturbation_turn while agents, topology, schema, temperature, and perturbation value remain fixed."
+  },
+  belief_drift_triangle_9agent_isolation_param: {
+    title: "LAB4 - Topology Star (REP, perturbation_turn)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: TRIANGLE_ESCALATION_DELTA, B: TRIANGLE_ESCALATION_DELTA, C: TRIANGLE_ESCALATION_DELTA },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective: "Measure propagation and lock-in under star topology with hub-mediated reinforcement.",
+    summary:
+      "Same star script with user-controlled perturbation_turn while agents, topology, schema, temperature, and perturbation value remain fixed."
   },
   belief_drift_triangle_27agent_isolation: {
     title: "LAB3 - Propagation Isolation (27-Agent)",
@@ -905,6 +959,9 @@ function emptyResults(): ResultsByProfile {
     belief_drift_triangle_3agent: { raw: null, sanitized: null },
     belief_drift_triangle_3agent_isolation: { raw: null, sanitized: null },
     belief_drift_triangle_9agent_isolation: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_param: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_isolation_param: { raw: null, sanitized: null },
+    belief_drift_triangle_9agent_isolation_param: { raw: null, sanitized: null },
     belief_drift_triangle_27agent_isolation: { raw: null, sanitized: null },
     belief_drift_triangle_9agent: { raw: null, sanitized: null },
     belief_drift_triangle_27agent: { raw: null, sanitized: null },
@@ -988,6 +1045,9 @@ function isCanonicalBeliefDriftProfile(profile: ExperimentProfile): boolean {
     profile === "belief_drift_triangle_3agent" ||
     profile === "belief_drift_triangle_3agent_isolation" ||
     profile === "belief_drift_triangle_9agent_isolation" ||
+    profile === "belief_drift_triangle_3agent_param" ||
+    profile === "belief_drift_triangle_3agent_isolation_param" ||
+    profile === "belief_drift_triangle_9agent_isolation_param" ||
     profile === "belief_drift_triangle_27agent_isolation" ||
     profile === "belief_drift_triangle_9agent" ||
     profile === "belief_drift_triangle_27agent"
@@ -999,6 +1059,9 @@ function isLab3PerturbationProfile(profile: ExperimentProfile): boolean {
     profile === "belief_drift_triangle_3agent" ||
     profile === "belief_drift_triangle_3agent_isolation" ||
     profile === "belief_drift_triangle_9agent_isolation" ||
+    profile === "belief_drift_triangle_3agent_param" ||
+    profile === "belief_drift_triangle_3agent_isolation_param" ||
+    profile === "belief_drift_triangle_9agent_isolation_param" ||
     profile === "belief_drift_triangle_27agent_isolation"
   );
 }
@@ -1007,6 +1070,8 @@ function isLab3PropagationIsolationProfile(profile: ExperimentProfile): boolean 
   return (
     profile === "belief_drift_triangle_3agent_isolation" ||
     profile === "belief_drift_triangle_9agent_isolation" ||
+    profile === "belief_drift_triangle_3agent_isolation_param" ||
+    profile === "belief_drift_triangle_9agent_isolation_param" ||
     profile === "belief_drift_triangle_27agent_isolation"
   );
 }
@@ -1017,11 +1082,22 @@ function lab4TopologyKindForProfile(profile: ExperimentProfile): Lab4TopologyKin
   if (profile === "belief_drift_triangle_3agent") return "chain";
   if (profile === "belief_drift_triangle_3agent_isolation") return "ring";
   if (profile === "belief_drift_triangle_9agent_isolation") return "star";
+  if (profile === "belief_drift_triangle_3agent_param") return "chain";
+  if (profile === "belief_drift_triangle_3agent_isolation_param") return "ring";
+  if (profile === "belief_drift_triangle_9agent_isolation_param") return "star";
   return null;
 }
 
 function isLab4TopologyProfile(profile: ExperimentProfile): boolean {
   return lab4TopologyKindForProfile(profile) !== null;
+}
+
+function profileSupportsPerturbationTurn(profile: ExperimentProfile): boolean {
+  return (
+    profile === "belief_drift_triangle_3agent_param" ||
+    profile === "belief_drift_triangle_3agent_isolation_param" ||
+    profile === "belief_drift_triangle_9agent_isolation_param"
+  );
 }
 
 function beliefProfileUsesStep(profile: ExperimentProfile): boolean {
@@ -3720,7 +3796,7 @@ function agentSequenceForProfile(profile: ExperimentProfile): AgentSequenceEntry
   if (profile === "three_agent_drift_amplifier") {
     return buildTriangleAgentSequence(3);
   }
-  if (profile === "belief_drift_triangle_9agent_isolation") {
+  if (profile === "belief_drift_triangle_9agent_isolation" || profile === "belief_drift_triangle_9agent_isolation_param") {
     // LAB4 star topology: hub A speaks twice per cycle.
     return [
       { role: "A", slotLabel: "A1" },
@@ -3824,10 +3900,13 @@ function profileRuleText(profile: ExperimentProfile, perturbationTurn = LAB3_PER
             : "Propagation rule: hub A updates claim on each A turn; B/C relay.";
       const rawGain = topologyKind === "chain" ? "8" : topologyKind === "ring" ? "10" : "14";
       const sanitizedDamping = topologyKind === "chain" ? "45" : topologyKind === "ring" ? "50" : "55";
+      const perturbationModeLine = profileSupportsPerturbationTurn(profile)
+        ? `Parameter: perturbation_turn = ${perturbationTurn}.`
+        : `Fixed perturbation_turn = ${LAB3_PERTURBATION_TURN}.`;
       return [
         `LAB4 topology propagation script (${topologyLabel.toUpperCase()}).`,
         topologyLine,
-        `Parameter: perturbation_turn = ${perturbationTurn}.`,
+        perturbationModeLine,
         `Turns 1-${Math.max(1, perturbationTurn - 1)}: locked claim = "${LAB3_TRUE_CLAIM}" (ground truth baseline).`,
         `Turn ${perturbationTurn}: inject controlled claim perturbation = "${LAB3_INJECTED_CLAIM}" (single-shot).`,
         `Turns ${perturbationTurn + 1}-${DEFAULT_TURNS}: recursive propagation under selected topology.`,
@@ -3856,10 +3935,13 @@ function profileRuleText(profile: ExperimentProfile, perturbationTurn = LAB3_PER
               agentCount / 3
             )} -> C${Math.floor(agentCount / 3)}.`
           : "Topology: A -> B -> C -> A.";
+      const perturbationModeLine = profileSupportsPerturbationTurn(profile)
+        ? `Parameter: perturbation_turn = ${perturbationTurn}.`
+        : `Fixed perturbation_turn = ${LAB3_PERTURBATION_TURN}.`;
       return [
         `${isIsolation ? "LAB3 propagation isolation" : "LAB3 controlled perturbation"} loop (${agentCount}-agent deterministic cycle).`,
         topologyLine,
-        `Parameter: perturbation_turn = ${perturbationTurn}.`,
+        perturbationModeLine,
         `Turns 1-${Math.max(1, perturbationTurn - 1)}: locked claim = "${LAB3_TRUE_CLAIM}" (ground truth baseline).`,
         `Turn ${perturbationTurn}: inject controlled claim perturbation = "${LAB3_INJECTED_CLAIM}" (single-shot).`,
         `Turns ${perturbationTurn + 1}-${DEFAULT_TURNS}: ${
@@ -4029,9 +4111,12 @@ function publicScriptTextForProfile(profile: ExperimentProfile, perturbationTurn
             : "Update rule: hub A updates claim on each A turn; B/C relay.";
       const rawGain = topologyKind === "chain" ? "8" : topologyKind === "ring" ? "10" : "14";
       const sanitizedDamping = topologyKind === "chain" ? "45" : topologyKind === "ring" ? "50" : "55";
+      const perturbationModeLine = profileSupportsPerturbationTurn(profile)
+        ? `Parameter: perturbation_turn = ${perturbationTurn}.`
+        : `Fixed perturbation_turn = ${LAB3_PERTURBATION_TURN}.`;
       return [
         `LAB4 propagation experiment (${topologyLabel} topology).`,
-        `Parameter: perturbation_turn = ${perturbationTurn}.`,
+        perturbationModeLine,
         topologyLine,
         `Step 1 (turns 1-${Math.max(1, perturbationTurn - 1)}): stable baseline with claim ValueEstimate:1000.`,
         `Step 2 (turn ${perturbationTurn}): inject one controlled perturbation by replacing claim with ValueEstimate:1100.`,
@@ -4046,9 +4131,12 @@ function publicScriptTextForProfile(profile: ExperimentProfile, perturbationTurn
     if (isLab3PerturbationProfile(profile)) {
       const agentCount = triangleAgentCountForProfile(profile);
       const isIsolation = isLab3PropagationIsolationProfile(profile);
+      const perturbationModeLine = profileSupportsPerturbationTurn(profile)
+        ? `Parameter: perturbation_turn = ${perturbationTurn}.`
+        : `Fixed perturbation_turn = ${LAB3_PERTURBATION_TURN}.`;
       return [
         `${isIsolation ? "LAB3 propagation isolation" : "LAB3 controlled perturbation"} experiment (${agentCount}-agent deterministic loop).`,
-        `Parameter: perturbation_turn = ${perturbationTurn}.`,
+        perturbationModeLine,
         agentCount > 3
           ? `Sequential cycle length is ${agentCount} turns: A1 -> B1 -> C1 ... -> A${Math.floor(agentCount / 3)} -> B${Math.floor(
               agentCount / 3
@@ -6849,7 +6937,14 @@ export default function HomePage() {
   const profileResults = results[selectedProfile];
   const rawSummary = profileResults.raw;
   const sanitizedSummary = profileResults.sanitized;
-  const selectedScriptCard = useMemo(() => scriptCardCopyForProfile(selectedProfile, perturbationTurn), [selectedProfile, perturbationTurn]);
+  const supportsPerturbationParameter = profileSupportsPerturbationTurn(selectedProfile);
+  const selectedPerturbationTurn = profileSupportsPerturbationTurn(selectedProfile)
+    ? normalizePerturbationTurn(perturbationTurn, turnBudget)
+    : LAB3_PERTURBATION_TURN;
+  const selectedScriptCard = useMemo(
+    () => scriptCardCopyForProfile(selectedProfile, selectedPerturbationTurn),
+    [selectedProfile, selectedPerturbationTurn]
+  );
   const consensusEval = evaluateConsensusCollapse(rawSummary, sanitizedSummary);
   const closure = closureVerdict(consensusEval);
   const structuralPattern = structuralPatternInterpretation(consensusEval);
@@ -7036,7 +7131,9 @@ export default function HomePage() {
   ): Promise<ConditionSummary> {
     const forceFullHorizon = isLab3PerturbationProfile(profile);
     const activeModel = options?.modelOverride?.trim() ? options.modelOverride.trim() : model;
-    const effectivePerturbationTurn = normalizePerturbationTurn(perturbationTurn, turnBudget);
+    const effectivePerturbationTurn = profileSupportsPerturbationTurn(profile)
+      ? normalizePerturbationTurn(perturbationTurn, turnBudget)
+      : LAB3_PERTURBATION_TURN;
     const effectiveInterTurnDelayMs =
       effectiveProvider === "mistral" ? Math.max(interTurnDelayMs, MISTRAL_MIN_INTER_TURN_DELAY_MS) : interTurnDelayMs;
     const runConfig: RunConfig = {
@@ -7722,7 +7819,7 @@ export default function HomePage() {
 
   function downloadActiveScriptSpec() {
     const slug = selectedProfile.replace(/_/g, "-");
-    const content = scriptDownloadBody(selectedProfile, perturbationTurn);
+    const content = scriptDownloadBody(selectedProfile, selectedPerturbationTurn);
     downloadTextFile(`${slug}-script.md`, content, "text/markdown");
   }
 
@@ -7977,13 +8074,20 @@ export default function HomePage() {
                 <label>Perturbation Turn</label>
                 <div className="turn-field-controls">
                   <select
-                    value={PERTURBATION_TURN_PRESETS.includes(perturbationTurn as (typeof PERTURBATION_TURN_PRESETS)[number]) ? String(perturbationTurn) : "custom"}
+                    value={
+                      supportsPerturbationParameter
+                        ? PERTURBATION_TURN_PRESETS.includes(perturbationTurn as (typeof PERTURBATION_TURN_PRESETS)[number])
+                          ? String(perturbationTurn)
+                          : "custom"
+                        : String(LAB3_PERTURBATION_TURN)
+                    }
                     onChange={(event) => {
+                      if (!supportsPerturbationParameter) return;
                       const value = event.target.value;
                       if (value === "custom") return;
                       setPerturbationTurn(normalizePerturbationTurn(Number(value), turnBudget));
                     }}
-                    disabled={isRunning}
+                    disabled={isRunning || !supportsPerturbationParameter}
                   >
                     {PERTURBATION_TURN_PRESETS.map((preset) => (
                       <option key={preset} value={preset}>
@@ -7996,9 +8100,9 @@ export default function HomePage() {
                     type="number"
                     min={2}
                     max={Math.max(2, turnBudget)}
-                    value={perturbationTurn}
+                    value={supportsPerturbationParameter ? perturbationTurn : LAB3_PERTURBATION_TURN}
                     onChange={(event) => setPerturbationTurn(normalizePerturbationTurn(Number(event.target.value), turnBudget))}
-                    disabled={isRunning}
+                    disabled={isRunning || !supportsPerturbationParameter}
                   />
                 </div>
               </div>
@@ -8065,7 +8169,7 @@ export default function HomePage() {
                 <strong>Summary:</strong> {selectedScriptCard.summary}
               </p>
               <p className="tiny">
-                <strong>Perturbation turn (parameter):</strong> {normalizePerturbationTurn(perturbationTurn, turnBudget)}
+                <strong>Perturbation turn:</strong> {selectedPerturbationTurn} {supportsPerturbationParameter ? "(parameterized)" : "(fixed)"}
               </p>
               <p className="tiny">
                 <strong>Agent loop:</strong> {selectedScriptCard.loop}
@@ -8107,7 +8211,9 @@ export default function HomePage() {
               <h4>Script Contract (selected)</h4>
               <p className="tiny">Runtime script definition for the currently selected dropdown item.</p>
               <pre className="raw-pre script-spec-pre">
-                {IS_PUBLIC_SIGNAL_MODE ? publicScriptTextForProfile(selectedProfile, perturbationTurn) : profileRuleText(selectedProfile, perturbationTurn)}
+                {IS_PUBLIC_SIGNAL_MODE
+                  ? publicScriptTextForProfile(selectedProfile, selectedPerturbationTurn)
+                  : profileRuleText(selectedProfile, selectedPerturbationTurn)}
               </pre>
               {selectedProfile === "epistemic_drift_protocol" ? (
                 <p className="tiny">
