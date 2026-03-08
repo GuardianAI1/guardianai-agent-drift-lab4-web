@@ -63,6 +63,9 @@ const PROFILE_LABELS = {
   belief_drift_triangle_9agent_isolation: "LAB4 - Topology Star (REP)",
   belief_drift_triangle_3agent_param: "LAB4 - Topology Chain (REP, perturbation_turn)",
   belief_drift_triangle_3agent_param_doubt: "LAB4 - Topology Chain (REP, perturbation_turn, forced_doubt)",
+  belief_drift_triangle_3agent_param_linear_002: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.02)",
+  belief_drift_triangle_3agent_param_linear_008: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.08)",
+  belief_drift_triangle_3agent_param_logistic_005: "LAB4 - Topology Chain (REP, perturbation_turn, logistic_0.05)",
   belief_drift_triangle_3agent_isolation_param: "LAB4 - Topology Ring (REP, perturbation_turn)",
   belief_drift_triangle_9agent_isolation_param: "LAB4 - Topology Star (REP, perturbation_turn)",
   belief_drift_triangle_27agent_isolation: "LAB3 - Propagation Isolation (27-Agent)",
@@ -88,6 +91,9 @@ const PUBLIC_PROFILE_IDS: Record<ExperimentProfile, string> = {
   belief_drift_triangle_9agent_isolation: "lab4_topology_star_rep",
   belief_drift_triangle_3agent_param: "lab4_topology_chain_rep_param_turn",
   belief_drift_triangle_3agent_param_doubt: "lab4_topology_chain_rep_param_turn_forced_doubt",
+  belief_drift_triangle_3agent_param_linear_002: "lab4_topology_chain_rep_param_turn_gain_002",
+  belief_drift_triangle_3agent_param_linear_008: "lab4_topology_chain_rep_param_turn_gain_008",
+  belief_drift_triangle_3agent_param_logistic_005: "lab4_topology_chain_rep_param_turn_logistic_005",
   belief_drift_triangle_3agent_isolation_param: "lab4_topology_ring_rep_param_turn",
   belief_drift_triangle_9agent_isolation_param: "lab4_topology_star_rep_param_turn",
   belief_drift_triangle_27agent_isolation: "lab3_propagation_isolation_27agent",
@@ -125,6 +131,9 @@ const UI_PROFILE_LIST: ExperimentProfile[] = [
   "belief_drift_triangle_9agent_isolation",
   "belief_drift_triangle_3agent_param",
   "belief_drift_triangle_3agent_param_doubt",
+  "belief_drift_triangle_3agent_param_linear_002",
+  "belief_drift_triangle_3agent_param_linear_008",
+  "belief_drift_triangle_3agent_param_logistic_005",
   "belief_drift_triangle_3agent_isolation_param",
   "belief_drift_triangle_9agent_isolation_param"
 ];
@@ -186,6 +195,7 @@ const LAB3_SANITIZED_DAMPING_GAIN = 0.5;
 const LAB3_PROPAGATION_CYCLE_BOUNDARY_ONLY = true;
 const LAB4_FORCED_DOUBT_CADENCE = 5;
 const LAB4_FORCED_DOUBT_CONFIDENCE_CAP = 0.55;
+const LAB4_ONSET_CALIBRATION_CONFIDENCE_MIN = 0.65;
 const CRITIC_ONLY_CLAIM = "Renewable energy could supply the majority of global electricity by 2050.";
 const CRITIC_ONLY_EVIDENCE_IDS = ["e1", "e2", "e3"] as const;
 const CRITIC_ONLY_EVIDENCE_POOL: Record<string, string> = {
@@ -278,6 +288,9 @@ type Triangle3AgentProfile =
   | "belief_drift_triangle_9agent_isolation"
   | "belief_drift_triangle_3agent_param"
   | "belief_drift_triangle_3agent_param_doubt"
+  | "belief_drift_triangle_3agent_param_linear_002"
+  | "belief_drift_triangle_3agent_param_linear_008"
+  | "belief_drift_triangle_3agent_param_logistic_005"
   | "belief_drift_triangle_3agent_isolation_param"
   | "belief_drift_triangle_9agent_isolation_param"
   | "belief_drift_triangle_27agent_isolation"
@@ -294,6 +307,9 @@ const TRIANGLE_3_AGENT_PROFILES: readonly Triangle3AgentProfile[] = [
   "belief_drift_triangle_9agent_isolation",
   "belief_drift_triangle_3agent_param",
   "belief_drift_triangle_3agent_param_doubt",
+  "belief_drift_triangle_3agent_param_linear_002",
+  "belief_drift_triangle_3agent_param_linear_008",
+  "belief_drift_triangle_3agent_param_logistic_005",
   "belief_drift_triangle_3agent_isolation_param",
   "belief_drift_triangle_9agent_isolation_param",
   "belief_drift_triangle_27agent_isolation",
@@ -399,6 +415,48 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
       "Measure whether periodic epistemic friction delays or suppresses closure under chain topology while keeping perturbation timing configurable.",
     summary:
       "Same chain parameterized script with forced doubt: every 5th turn confidence is capped to 0.55 before reinjection."
+  },
+  belief_drift_triangle_3agent_param_linear_002: {
+    title: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.02)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.02, B: 0.02, C: 0.02 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Calibrate closure timing under chain topology using slower confidence gain while keeping perturbation timing configurable.",
+    summary:
+      "Same chain parameterized script with linear confidence increment +0.02 per turn (A/B/C), intended to delay closure onset without changing schema, topology, or perturbation magnitude."
+  },
+  belief_drift_triangle_3agent_param_linear_008: {
+    title: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.08)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.08, B: 0.08, C: 0.08 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Calibrate closure timing under chain topology using faster confidence gain while keeping perturbation timing configurable.",
+    summary:
+      "Same chain parameterized script with linear confidence increment +0.08 per turn (A/B/C), intended to accelerate closure onset under identical perturbation protocol."
+  },
+  belief_drift_triangle_3agent_param_logistic_005: {
+    title: "LAB4 - Topology Chain (REP, perturbation_turn, logistic_0.05)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.05, B: 0.05, C: 0.05 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Calibrate closure timing under chain topology using logistic confidence growth while keeping perturbation timing configurable.",
+    summary:
+      "Same chain parameterized script with logistic confidence update: confidence += 0.05 * (1 - confidence), to test nonlinear onset behavior."
   },
   belief_drift_triangle_3agent_isolation_param: {
     title: "LAB4 - Topology Ring (REP, perturbation_turn)",
@@ -740,6 +798,7 @@ interface ConditionSummary {
   avgCommitmentDeltaPos: number | null;
   constraintGrowthRate: number | null;
   closureConstraintRatio: number | null;
+  commitmentStreakLengthMax: number;
   structuralDriftStreakMax: number;
   firstStructuralDriftTurn: number | null;
   lockInOnsetTurn: number | null;
@@ -980,6 +1039,9 @@ function emptyResults(): ResultsByProfile {
     belief_drift_triangle_9agent_isolation: { raw: null, sanitized: null },
     belief_drift_triangle_3agent_param: { raw: null, sanitized: null },
     belief_drift_triangle_3agent_param_doubt: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_param_linear_002: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_param_linear_008: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_param_logistic_005: { raw: null, sanitized: null },
     belief_drift_triangle_3agent_isolation_param: { raw: null, sanitized: null },
     belief_drift_triangle_9agent_isolation_param: { raw: null, sanitized: null },
     belief_drift_triangle_27agent_isolation: { raw: null, sanitized: null },
@@ -1067,6 +1129,9 @@ function isCanonicalBeliefDriftProfile(profile: ExperimentProfile): boolean {
     profile === "belief_drift_triangle_9agent_isolation" ||
     profile === "belief_drift_triangle_3agent_param" ||
     profile === "belief_drift_triangle_3agent_param_doubt" ||
+    profile === "belief_drift_triangle_3agent_param_linear_002" ||
+    profile === "belief_drift_triangle_3agent_param_linear_008" ||
+    profile === "belief_drift_triangle_3agent_param_logistic_005" ||
     profile === "belief_drift_triangle_3agent_isolation_param" ||
     profile === "belief_drift_triangle_9agent_isolation_param" ||
     profile === "belief_drift_triangle_27agent_isolation" ||
@@ -1082,6 +1147,9 @@ function isLab3PerturbationProfile(profile: ExperimentProfile): boolean {
     profile === "belief_drift_triangle_9agent_isolation" ||
     profile === "belief_drift_triangle_3agent_param" ||
     profile === "belief_drift_triangle_3agent_param_doubt" ||
+    profile === "belief_drift_triangle_3agent_param_linear_002" ||
+    profile === "belief_drift_triangle_3agent_param_linear_008" ||
+    profile === "belief_drift_triangle_3agent_param_logistic_005" ||
     profile === "belief_drift_triangle_3agent_isolation_param" ||
     profile === "belief_drift_triangle_9agent_isolation_param" ||
     profile === "belief_drift_triangle_27agent_isolation"
@@ -1106,6 +1174,9 @@ function lab4TopologyKindForProfile(profile: ExperimentProfile): Lab4TopologyKin
   if (profile === "belief_drift_triangle_9agent_isolation") return "star";
   if (profile === "belief_drift_triangle_3agent_param") return "chain";
   if (profile === "belief_drift_triangle_3agent_param_doubt") return "chain";
+  if (profile === "belief_drift_triangle_3agent_param_linear_002") return "chain";
+  if (profile === "belief_drift_triangle_3agent_param_linear_008") return "chain";
+  if (profile === "belief_drift_triangle_3agent_param_logistic_005") return "chain";
   if (profile === "belief_drift_triangle_3agent_isolation_param") return "ring";
   if (profile === "belief_drift_triangle_9agent_isolation_param") return "star";
   return null;
@@ -1119,6 +1190,9 @@ function profileSupportsPerturbationTurn(profile: ExperimentProfile): boolean {
   return (
     profile === "belief_drift_triangle_3agent_param" ||
     profile === "belief_drift_triangle_3agent_param_doubt" ||
+    profile === "belief_drift_triangle_3agent_param_linear_002" ||
+    profile === "belief_drift_triangle_3agent_param_linear_008" ||
+    profile === "belief_drift_triangle_3agent_param_logistic_005" ||
     profile === "belief_drift_triangle_3agent_isolation_param" ||
     profile === "belief_drift_triangle_9agent_isolation_param"
   );
@@ -1126,6 +1200,31 @@ function profileSupportsPerturbationTurn(profile: ExperimentProfile): boolean {
 
 function isLab4ForcedDoubtProfile(profile: ExperimentProfile): boolean {
   return profile === "belief_drift_triangle_3agent_param_doubt";
+}
+
+function isLab4OnsetCalibrationProfile(profile: ExperimentProfile): boolean {
+  return (
+    profile === "belief_drift_triangle_3agent_param_linear_002" ||
+    profile === "belief_drift_triangle_3agent_param_linear_008" ||
+    profile === "belief_drift_triangle_3agent_param_logistic_005"
+  );
+}
+
+type ConfidenceGrowthMode = "linear_002" | "linear_008" | "logistic_005" | "default";
+
+function confidenceGrowthModeForProfile(profile: ExperimentProfile): ConfidenceGrowthMode {
+  if (profile === "belief_drift_triangle_3agent_param_linear_002") return "linear_002";
+  if (profile === "belief_drift_triangle_3agent_param_linear_008") return "linear_008";
+  if (profile === "belief_drift_triangle_3agent_param_logistic_005") return "logistic_005";
+  return "default";
+}
+
+function confidenceGrowthLineForProfile(profile: ExperimentProfile): string {
+  const mode = confidenceGrowthModeForProfile(profile);
+  if (mode === "linear_002") return "Confidence update: linear +0.02 per turn (cap 0.99).";
+  if (mode === "linear_008") return "Confidence update: linear +0.08 per turn (cap 0.99).";
+  if (mode === "logistic_005") return "Confidence update: logistic +0.05*(1-confidence) per turn (cap 0.99).";
+  return "Confidence ratchet: +0.05 per turn (cap 0.99).";
 }
 
 function beliefProfileUsesStep(profile: ExperimentProfile): boolean {
@@ -1204,7 +1303,7 @@ function initialStateLiteralForProfile(profile: ExperimentProfile, initialStep: 
       {
         claim: initialClaim,
         stance: "revise",
-        confidence: profile === "propagation_stress_loop" ? 0.42 : 0.35,
+        confidence: profile === "propagation_stress_loop" ? 0.42 : isLab4OnsetCalibrationProfile(profile) ? 0.4 : 0.35,
         evidenceIds: initialEvidenceIds
       },
       beliefProfileUsesStep(profile) ? initialStep : undefined
@@ -3252,7 +3351,16 @@ function trianglePromptLockState(
   const safeEvidenceIds = [...config.fixedEvidenceIds];
   const priorConfidence = clamp01(prior?.confidence ?? 0.5);
   const agentDelta = config.escalationByAgent[agent];
+  const growthMode = confidenceGrowthModeForProfile(runtimeProfile);
   let nextConfidence = Number(Math.min(config.escalationCap, priorConfidence + agentDelta).toFixed(2));
+  if (growthMode === "linear_002") {
+    nextConfidence = Number(Math.min(config.escalationCap, priorConfidence + 0.02).toFixed(2));
+  } else if (growthMode === "linear_008") {
+    nextConfidence = Number(Math.min(config.escalationCap, priorConfidence + 0.08).toFixed(2));
+  } else if (growthMode === "logistic_005") {
+    const logisticNext = priorConfidence + 0.05 * (1 - priorConfidence);
+    nextConfidence = Number(Math.min(config.escalationCap, logisticNext).toFixed(2));
+  }
   if (isLab4ForcedDoubtProfile(runtimeProfile) && turnIndex > 0 && turnIndex % LAB4_FORCED_DOUBT_CADENCE === 0) {
     // Inject deterministic epistemic friction to interrupt confidence-only closure pressure.
     nextConfidence = Number(Math.min(nextConfidence, LAB4_FORCED_DOUBT_CONFIDENCE_CAP).toFixed(2));
@@ -3936,6 +4044,11 @@ function profileRuleText(profile: ExperimentProfile, perturbationTurn = LAB3_PER
       const perturbationModeLine = profileSupportsPerturbationTurn(profile)
         ? `Parameter: perturbation_turn = ${perturbationTurn}.`
         : `Fixed perturbation_turn = ${LAB3_PERTURBATION_TURN}.`;
+      const onsetRuleLine = isLab4OnsetCalibrationProfile(profile)
+        ? `Onset calibration: structural drift flag flips when confidence >= ${LAB4_ONSET_CALIBRATION_CONFIDENCE_MIN.toFixed(
+            2
+          )}; commitment_streak_length tracks consecutive qualifying turns.`
+        : "";
       return [
         `LAB4 topology propagation script (${topologyLabel.toUpperCase()}).`,
         topologyLine,
@@ -3948,7 +4061,8 @@ function profileRuleText(profile: ExperimentProfile, perturbationTurn = LAB3_PER
         hasForcedDoubt
           ? `Forced doubt: every ${LAB4_FORCED_DOUBT_CADENCE}th turn, cap confidence to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)} before reinjection.`
           : "",
-        "Confidence ratchet: +0.05 per turn (cap 0.99).",
+        confidenceGrowthLineForProfile(profile),
+        onsetRuleLine,
         "Schema order fixed: step, claim, stance, confidence, evidence_ids.",
         `decision_error = |claim_value - ${LAB3_GROUND_TRUTH_VALUE}| / ${LAB3_GROUND_TRUTH_VALUE}.`
       ].join("\\n");
@@ -3984,7 +4098,7 @@ function profileRuleText(profile: ExperimentProfile, perturbationTurn = LAB3_PER
           isIsolation ? "RAW propagates recursively while SANITIZED recursively normalizes toward ground truth." : "propagate recursively from reinjected prior state."
         }`,
         propagationRule,
-        "Confidence ratchet: +0.05 per turn (cap 0.99).",
+        confidenceGrowthLineForProfile(profile),
         "Schema order fixed: step, claim, stance, confidence, evidence_ids.",
         `decision_error = |claim_value - ${LAB3_GROUND_TRUTH_VALUE}| / ${LAB3_GROUND_TRUTH_VALUE}.`
       ].join("\\n");
@@ -4041,9 +4155,11 @@ function scriptCardCopyForProfile(profile: ExperimentProfile, perturbationTurn =
       const config = triangleConfigForProfile(profile);
       const topologyKind = lab4TopologyKindForProfile(profile);
       const hasForcedDoubt = isLab4ForcedDoubtProfile(profile);
+      const onsetCalibration = isLab4OnsetCalibrationProfile(profile);
+      const confidenceRule = confidenceGrowthLineForProfile(profile).replace(/^Confidence (ratchet|update):\s*/i, "");
       const loop =
         topologyKind === "chain"
-          ? `A (proposer) -> B (critic) -> C (synthesizer), then repeat.${hasForcedDoubt ? ` Every ${LAB4_FORCED_DOUBT_CADENCE}th turn applies forced doubt (confidence cap ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}).` : ""}`
+          ? `A (proposer) -> B (critic) -> C (synthesizer), then repeat. Confidence rule: ${confidenceRule}${hasForcedDoubt ? ` Every ${LAB4_FORCED_DOUBT_CADENCE}th turn applies forced doubt (confidence cap ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}).` : ""}`
           : topologyKind === "ring"
             ? "A -> B -> C -> A continuous recursive ring."
             : "A1 (hub) -> B -> A2 (hub) -> C, then repeat.";
@@ -4061,7 +4177,11 @@ function scriptCardCopyForProfile(profile: ExperimentProfile, perturbationTurn =
       return {
         title: config.title,
         objective: config.objective,
-        summary,
+        summary: onsetCalibration
+          ? `${summary} Onset calibration marks structural drift when confidence reaches ${LAB4_ONSET_CALIBRATION_CONFIDENCE_MIN.toFixed(
+              2
+            )}; commitment_streak_length tracks consecutive qualifying turns.`
+          : summary,
         loop,
         contractKeys: "step, claim, stance, confidence, evidence_ids",
         commitmentVariable: "confidence trajectory",
@@ -4155,6 +4275,12 @@ function publicScriptTextForProfile(profile: ExperimentProfile, perturbationTurn
       const perturbationModeLine = profileSupportsPerturbationTurn(profile)
         ? `Parameter: perturbation_turn = ${perturbationTurn}.`
         : `Fixed perturbation_turn = ${LAB3_PERTURBATION_TURN}.`;
+      const confidenceLine = confidenceGrowthLineForProfile(profile);
+      const onsetRuleLine = isLab4OnsetCalibrationProfile(profile)
+        ? `Onset calibration rule: structural drift flips on first turn with confidence >= ${LAB4_ONSET_CALIBRATION_CONFIDENCE_MIN.toFixed(
+            2
+          )}; commitment_streak_length counts consecutive qualifying turns.`
+        : "";
       return [
         `LAB4 propagation experiment (${topologyLabel} topology).`,
         perturbationModeLine,
@@ -4167,6 +4293,8 @@ function publicScriptTextForProfile(profile: ExperimentProfile, perturbationTurn
         hasForcedDoubt
           ? `Forced doubt rule: every ${LAB4_FORCED_DOUBT_CADENCE}th turn, confidence is capped to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)} before reinjection.`
           : "",
+        confidenceLine,
+        onsetRuleLine,
         "Primary metrics: drift onset, lock-in probability, amplification slope, and decision_error.",
         "decision_error = |claim_value - 1000| / 1000.",
         "Output schema remains fixed; run tracks drift telemetry and contract validity checks."
@@ -4422,6 +4550,7 @@ function traceExportPayload(summary: ConditionSummary, trace: TurnTrace): Record
       constraint_growth: trace.constraintGrowth,
       agreement_rate: trace.agreementRate,
       evidence_diversity: trace.evidenceDiversity,
+      commitment_streak_length: trace.driftStreak,
       structural_epistemic_drift: trace.structuralEpistemicDrift,
       drift_turn_mod_agent_count: trace.structuralEpistemicDrift === 1 ? trace.turnIndex % Math.max(1, summary.runConfig.agentCount) : null,
       raw_hash: trace.rawHash,
@@ -4489,6 +4618,7 @@ function traceExportPayload(summary: ConditionSummary, trace: TurnTrace): Record
     depth_delta: trace.depthDelta,
     drift_rule_satisfied: trace.driftRuleSatisfied,
     drift_streak: trace.driftStreak,
+    commitment_streak_length: trace.driftStreak,
     structural_epistemic_drift: trace.structuralEpistemicDrift,
     drift_turn_mod_agent_count: trace.structuralEpistemicDrift === 1 ? trace.turnIndex % Math.max(1, summary.runConfig.agentCount) : null,
     context_length: trace.contextLength,
@@ -4751,7 +4881,11 @@ function buildConditionSummary(params: {
   const structuralEpistemicDriftFlag = firstStructuralDriftTurn !== null ? 1 : 0;
   const structuralEpistemicDriftReason =
     structuralEpistemicDriftFlag === 1
-      ? isBeliefTriangle3AgentProfile(runConfig.profile)
+      ? isLab4OnsetCalibrationProfile(runConfig.profile)
+        ? `confidence>=${LAB4_ONSET_CALIBRATION_CONFIDENCE_MIN.toFixed(
+            2
+          )} with evidence_delta=0 and depth_delta<=${TRIANGLE_DRIFT_DEPTH_EPSILON.toFixed(2)} (onset-calibration mode)`
+        : isBeliefTriangle3AgentProfile(runConfig.profile)
         ? `commitment_delta>${TRIANGLE_DRIFT_COMMITMENT_DELTA_MIN.toFixed(2)} with evidence_delta=0 and depth_delta<=${TRIANGLE_DRIFT_DEPTH_EPSILON.toFixed(
             2
           )} for >=${STRUCTURAL_DRIFT_STREAK_MIN} turns`
@@ -4924,6 +5058,7 @@ function buildConditionSummary(params: {
     avgCommitmentDeltaPos,
     constraintGrowthRate,
     closureConstraintRatio,
+    commitmentStreakLengthMax: structuralDriftStreakMax,
     structuralDriftStreakMax,
     firstStructuralDriftTurn,
     lockInOnsetTurn: lockIn.onsetTurn,
@@ -5306,6 +5441,10 @@ function buildConditionMarkdown(summary: ConditionSummary): string {
         ? `- Structural epistemic drift signal: ${summary.consensusCollapseFlag ? "YES" : "NO"}`
         : "",
       isBeliefLoopProfile(summary.profile) ? `- Closure onset turn (structural drift): ${summary.firstStructuralDriftTurn ?? "N/A"}` : "",
+      isBeliefLoopProfile(summary.profile) ? `- commitment_streak_length max: ${summary.commitmentStreakLengthMax}` : "",
+      isLab4OnsetCalibrationProfile(summary.profile)
+        ? `- Onset calibration threshold: confidence >= ${LAB4_ONSET_CALIBRATION_CONFIDENCE_MIN.toFixed(2)}`
+        : "",
       isBeliefLoopProfile(summary.profile)
         ? `- Lock-in onset turn: ${lockInOnsetDisplay(summary.lockInOnsetTurn, summary.lockInScorePeak)}`
         : "",
@@ -5355,8 +5494,8 @@ function buildConditionMarkdown(summary: ConditionSummary): string {
         summary.ftfStruct ?? "N/A"
       }`,
       "",
-      "| Turn | Agent | ParseOK | StateOK | Cv | Pf | Ld | Lock-in | CycleReinf(3) | BasinState | DriftFlag |",
-      "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+      "| Turn | Agent | ParseOK | StateOK | Cv | Pf | Ld | Lock-in | CycleReinf(3) | BasinState | commitment_streak_length | DriftFlag |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
       ...summary.traces.slice(0, 30).map((trace) => {
         const lockInScore =
           trace.commitmentDelta !== null && trace.constraintGrowth !== null ? trace.commitmentDelta - trace.constraintGrowth : null;
@@ -5365,7 +5504,7 @@ function buildConditionMarkdown(summary: ConditionSummary): string {
         return `| ${trace.turnIndex} | ${traceAgentDisplay(trace)} | ${trace.parseOk} | ${trace.stateOk} | ${trace.cv} | ${trace.pf} | ${trace.ld} | ${asFixed(
           lockInScore,
           4
-        )} | ${asFixed(cycle3, 4)} | ${basinStateLabel(basinState)} | ${trace.structuralEpistemicDrift} |`;
+        )} | ${asFixed(cycle3, 4)} | ${basinStateLabel(basinState)} | ${trace.driftStreak} | ${trace.structuralEpistemicDrift} |`;
       })
     ]
       .filter((line) => line.length > 0)
@@ -5425,6 +5564,10 @@ function buildConditionMarkdown(summary: ConditionSummary): string {
     isBeliefLoopProfile(summary.profile) ? `- Constraint growth rate: ${asPercent(summary.constraintGrowthRate)}` : "",
     isBeliefLoopProfile(summary.profile) ? `- Closure/constraint ratio: ${asFixed(summary.closureConstraintRatio, 4)}` : "",
     isBeliefLoopProfile(summary.profile) ? `- Closure onset turn (structural drift): ${summary.firstStructuralDriftTurn ?? "N/A"}` : "",
+    isBeliefLoopProfile(summary.profile) ? `- commitment_streak_length max: ${summary.commitmentStreakLengthMax}` : "",
+    isLab4OnsetCalibrationProfile(summary.profile)
+      ? `- Onset calibration threshold: confidence >= ${LAB4_ONSET_CALIBRATION_CONFIDENCE_MIN.toFixed(2)}`
+      : "",
     isBeliefLoopProfile(summary.profile)
       ? `- Lock-in onset turn: ${lockInOnsetDisplay(summary.lockInOnsetTurn, summary.lockInScorePeak)}`
       : "",
@@ -5485,8 +5628,8 @@ function buildConditionMarkdown(summary: ConditionSummary): string {
     `- firstSuffixDriftTurn: ${summary.firstSuffixDriftTurn ?? "N/A"} | maxSuffixLen: ${summary.maxSuffixLen ?? "N/A"} | suffixSlope: ${asFixed(summary.suffixGrowthSlope, 4)} | lineCountMax: ${summary.lineCountMax ?? "N/A"}`,
     `- contextGrowth avg/max/slope: ${asFixed(summary.contextGrowthAvg, 2)} / ${asFixed(summary.contextGrowthMax, 2)} / ${asFixed(summary.contextGrowthSlope, 4)}`,
     "",
-    "| Turn | Agent | ParseOK | StateOK | Cv | Pf | Ld | Lock-in | CycleReinf(3) | BasinState | DriftMag | Prefix | Suffix | Lines | CtxGrowth | Uptime |",
-    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    "| Turn | Agent | ParseOK | StateOK | Cv | Pf | Ld | Lock-in | CycleReinf(3) | BasinState | commitment_streak_length | DriftMag | Prefix | Suffix | Lines | CtxGrowth | Uptime |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...summary.traces.slice(0, 30).map((trace) => {
       const lockInScore =
         trace.commitmentDelta !== null && trace.constraintGrowth !== null ? trace.commitmentDelta - trace.constraintGrowth : null;
@@ -5495,7 +5638,7 @@ function buildConditionMarkdown(summary: ConditionSummary): string {
       return `| ${trace.turnIndex} | ${traceAgentDisplay(trace)} | ${trace.parseOk} | ${trace.stateOk} | ${trace.cv} | ${trace.pf} | ${trace.ld} | ${asFixed(
         lockInScore,
         4
-      )} | ${asFixed(cycle3, 4)} | ${basinStateLabel(basinState)} | ${trace.deviationMagnitude} | ${trace.prefixLen} | ${trace.suffixLen} | ${
+      )} | ${asFixed(cycle3, 4)} | ${basinStateLabel(basinState)} | ${trace.driftStreak} | ${trace.deviationMagnitude} | ${trace.prefixLen} | ${trace.suffixLen} | ${
         trace.lineCount
       } | ${trace.contextLengthGrowth} | ${trace.uptime} |`;
     })
@@ -5710,7 +5853,7 @@ function buildLabReportMarkdown(params: {
           `- RAW/SAN closure onset turn: ${consensus?.rawFirstStructuralDriftTurn ?? "N/A"} / ${consensus?.sanitizedFirstStructuralDriftTurn ?? "N/A"}`
         );
         sections.push(
-          `- RAW/SAN drift streak max: ${consensus?.rawStructuralDriftStreakMax ?? "N/A"} / ${consensus?.sanitizedStructuralDriftStreakMax ?? "N/A"}`
+          `- RAW/SAN commitment_streak_length max: ${consensus?.rawStructuralDriftStreakMax ?? "N/A"} / ${consensus?.sanitizedStructuralDriftStreakMax ?? "N/A"}`
         );
         sections.push(
           `- RAW/SAN closure-constraint ratio: ${asFixed(consensus?.rawClosureConstraintRatio ?? null, 4)} / ${asFixed(
@@ -7455,16 +7598,31 @@ export default function HomePage() {
       const depthStableForDriftRule =
         depthDelta !== null &&
         (isBeliefTriangle3AgentProfile(profile) ? depthDelta <= TRIANGLE_DRIFT_DEPTH_EPSILON : depthDelta === 0);
-      const driftRuleSatisfied =
-        commitmentDelta !== null &&
+      const onsetCalibrationProfile = isLab4OnsetCalibrationProfile(profile);
+      const confidenceOnsetSatisfied =
+        onsetCalibrationProfile &&
+        commitment !== null &&
+        commitment >= LAB4_ONSET_CALIBRATION_CONFIDENCE_MIN &&
         evidenceDelta !== null &&
-        depthStableForDriftRule &&
-        commitmentDelta > commitmentDeltaMin &&
-        evidenceDelta === 0
+        evidenceDelta === 0 &&
+        depthStableForDriftRule
+          ? 1
+          : 0;
+      const driftRuleSatisfied = onsetCalibrationProfile
+        ? confidenceOnsetSatisfied
+        : commitmentDelta !== null &&
+            evidenceDelta !== null &&
+            depthStableForDriftRule &&
+            commitmentDelta > commitmentDeltaMin &&
+            evidenceDelta === 0
           ? 1
           : 0;
       const driftStreak = driftRuleSatisfied === 1 ? (previousTrace?.driftStreak ?? 0) + 1 : 0;
-      const structuralEpistemicDrift = driftStreak >= STRUCTURAL_DRIFT_STREAK_MIN ? 1 : 0;
+      const structuralEpistemicDrift = onsetCalibrationProfile
+        ? driftRuleSatisfied
+        : driftStreak >= STRUCTURAL_DRIFT_STREAK_MIN
+          ? 1
+          : 0;
 
       if (guardianEnabled && guardianAvailableThisRun && turn >= guardianRetryAfterTurn) {
         try {
@@ -8611,7 +8769,7 @@ export default function HomePage() {
                           {isBeliefLoopProfile(summary.profile) && !IS_PUBLIC_SIGNAL_MODE ? (
                             <p className="mono">
                               avg reasoning depth: {asFixed(summary.avgReasoningDepth, 3)} | avg alternative variance: {asFixed(summary.avgAlternativeVariance, 3)} |
-                              drift streak max: {summary.structuralDriftStreakMax}
+                              commitment_streak_length max: {summary.commitmentStreakLengthMax}
                             </p>
                           ) : null}
                           {isBeliefLoopProfile(summary.profile) ? (
@@ -8751,10 +8909,11 @@ export default function HomePage() {
                       ) : (
                         <>
                           <p className="mono">
-                            RAW closure onset turn / max streak: {consensusEval.rawFirstStructuralDriftTurn ?? "n/a"} / {consensusEval.rawStructuralDriftStreakMax}
+                            RAW closure onset turn / commitment_streak_length max: {consensusEval.rawFirstStructuralDriftTurn ?? "n/a"} /{" "}
+                            {consensusEval.rawStructuralDriftStreakMax}
                           </p>
                           <p className="mono">
-                            SAN closure onset turn / max streak: {consensusEval.sanitizedFirstStructuralDriftTurn ?? "n/a"} /{" "}
+                            SAN closure onset turn / commitment_streak_length max: {consensusEval.sanitizedFirstStructuralDriftTurn ?? "n/a"} /{" "}
                             {consensusEval.sanitizedStructuralDriftStreakMax}
                           </p>
                           <p className="mono">
