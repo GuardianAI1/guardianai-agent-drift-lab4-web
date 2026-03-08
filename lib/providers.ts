@@ -13,7 +13,8 @@ const modelOptionsByProvider: Record<Exclude<APIProvider, "auto">, Array<{ value
   together: [
     { value: "google/gemma-3n-e4b-it", label: "google/gemma-3n-e4b-it (Default)" },
     { value: "mistralai/Mistral-Small-24B-Instruct-2501", label: "mistralai/Mistral-Small-24B-Instruct-2501" },
-    { value: "meta-llama/Meta-Llama-3-8B-Instruct-Lite", label: "meta-llama/Meta-Llama-3-8B-Instruct-Lite" }
+    { value: "meta-llama/Meta-Llama-3-8B-Instruct-Lite", label: "meta-llama/Meta-Llama-3-8B-Instruct-Lite" },
+    { value: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", label: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free" }
   ],
   openAI: [
     { value: "gpt-4o-mini", label: "gpt-4o-mini (Default)" },
