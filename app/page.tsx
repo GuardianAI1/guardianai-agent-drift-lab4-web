@@ -18,8 +18,6 @@ const DEFAULT_PROVIDER: APIProvider = "together";
 const DEFAULT_MODEL = defaultModelForProvider(DEFAULT_PROVIDER);
 const DEFAULT_PROFILE: ExperimentProfile = "belief_drift_triangle_3agent";
 const DEFAULT_TURNS = 120;
-const TURN_BUDGET_PRESETS = [12, 20, 30, 40, 50, 100, 120, 200, 400] as const;
-const PERTURBATION_TURN_PRESETS = [6, 12, 18, 24] as const;
 const DEFAULT_MAX_TOKENS = 96;
 const DEFAULT_INTER_TURN_DELAY_MS = 50;
 const MIN_INTER_TURN_DELAY_MS = 0;
@@ -8042,69 +8040,26 @@ export default function HomePage() {
 
               <div className="field-block run-field-turns">
                 <label>Turns</label>
-                <div className="turn-field-controls">
-                  <select
-                    value={TURN_BUDGET_PRESETS.includes(turnBudget as (typeof TURN_BUDGET_PRESETS)[number]) ? String(turnBudget) : "custom"}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      if (value === "custom") return;
-                      setTurnBudget(Math.max(1, Math.min(4000, Number(value) || DEFAULT_TURNS)));
-                    }}
-                    disabled={isRunning}
-                  >
-                    {TURN_BUDGET_PRESETS.map((preset) => (
-                      <option key={preset} value={preset}>
-                        {preset}
-                      </option>
-                    ))}
-                    <option value="custom">Custom</option>
-                  </select>
-                  <input
-                    type="number"
-                    min={1}
-                    max={4000}
-                    value={turnBudget}
-                    onChange={(event) => setTurnBudget(Math.max(1, Math.min(4000, Number(event.target.value) || 1)))}
-                    disabled={isRunning}
-                  />
-                </div>
+                <input
+                  type="number"
+                  min={1}
+                  max={4000}
+                  value={turnBudget}
+                  onChange={(event) => setTurnBudget(Math.max(1, Math.min(4000, Number(event.target.value) || 1)))}
+                  disabled={isRunning}
+                />
               </div>
 
               <div className="field-block run-field-perturbation">
                 <label>Perturbation Turn</label>
-                <div className="turn-field-controls">
-                  <select
-                    value={
-                      supportsPerturbationParameter
-                        ? PERTURBATION_TURN_PRESETS.includes(perturbationTurn as (typeof PERTURBATION_TURN_PRESETS)[number])
-                          ? String(perturbationTurn)
-                          : "custom"
-                        : String(LAB3_PERTURBATION_TURN)
-                    }
-                    onChange={(event) => {
-                      if (!supportsPerturbationParameter) return;
-                      const value = event.target.value;
-                      if (value === "custom") return;
-                      setPerturbationTurn(normalizePerturbationTurn(Number(value), turnBudget));
-                    }}
-                    disabled={isRunning || !supportsPerturbationParameter}
-                  >
-                    {PERTURBATION_TURN_PRESETS.map((preset) => (
-                      <option key={preset} value={preset}>
-                        {preset}
-                      </option>
-                    ))}
-                    <option value="custom">Custom</option>
-                  </select>
-                  <input
-                    type="number"
-                    min={2}
-                    max={Math.max(2, turnBudget)}
-                    value={supportsPerturbationParameter ? perturbationTurn : LAB3_PERTURBATION_TURN}
-                    onChange={(event) => setPerturbationTurn(normalizePerturbationTurn(Number(event.target.value), turnBudget))}
-                    disabled={isRunning || !supportsPerturbationParameter}
-                  />
-                </div>
+                <input
+                  type="number"
+                  min={2}
+                  max={Math.max(2, turnBudget)}
+                  value={supportsPerturbationParameter ? perturbationTurn : LAB3_PERTURBATION_TURN}
+                  onChange={(event) => setPerturbationTurn(normalizePerturbationTurn(Number(event.target.value), turnBudget))}
+                  disabled={isRunning || !supportsPerturbationParameter}
+                />
               </div>
 
               <div className="field-block run-field-tokens">

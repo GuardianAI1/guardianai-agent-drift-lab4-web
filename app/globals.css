@@ -494,7 +494,7 @@ button:disabled {
 
 .run-config-grid {
   display: grid;
-  grid-template-columns: minmax(170px, 220px) minmax(170px, 210px) repeat(3, minmax(95px, 120px));
+  grid-template-columns: minmax(220px, 320px) repeat(5, minmax(115px, 150px));
   gap: 8px;
   justify-content: start;
   align-items: end;
@@ -512,16 +512,20 @@ button:disabled {
   grid-column: 2 / 3;
 }
 
-.run-field-tokens {
+.run-field-perturbation {
   grid-column: 3 / 4;
 }
 
-.run-field-temp {
+.run-field-tokens {
   grid-column: 4 / 5;
 }
 
-.run-field-delay {
+.run-field-temp {
   grid-column: 5 / 6;
+}
+
+.run-field-delay {
+  grid-column: 6 / 7;
 }
 
 .turn-field-controls {
@@ -1506,6 +1510,7 @@ button:disabled {
 
   .run-field-script,
   .run-field-turns,
+  .run-field-perturbation,
   .run-field-tokens,
   .run-field-temp,
   .run-field-delay {
