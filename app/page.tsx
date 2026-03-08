@@ -64,8 +64,18 @@ const PROFILE_LABELS = {
   belief_drift_triangle_3agent_param: "LAB4 - Topology Chain (REP, perturbation_turn)",
   belief_drift_triangle_3agent_param_doubt: "LAB4 - Topology Chain (REP, perturbation_turn, forced_doubt)",
   belief_drift_triangle_3agent_param_linear_002: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.02)",
+  belief_drift_triangle_3agent_param_linear_003: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.03)",
+  belief_drift_triangle_3agent_param_linear_005: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.05)",
   belief_drift_triangle_3agent_param_linear_008: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.08)",
   belief_drift_triangle_3agent_param_logistic_005: "LAB4 - Topology Chain (REP, perturbation_turn, logistic_0.05)",
+  belief_drift_triangle_3agent_fixed_pt06_linear_005: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_6)",
+  belief_drift_triangle_3agent_fixed_pt12_linear_005: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_12)",
+  belief_drift_triangle_3agent_fixed_pt18_linear_005: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_18)",
+  belief_drift_triangle_3agent_fixed_pt24_linear_005: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_24)",
+  belief_drift_triangle_3agent_param_linear_005_reanchor_10: "LAB4 - Chain Control (REP, gain_0.05, reanchor_10)",
+  belief_drift_triangle_3agent_param_linear_005_reanchor_20: "LAB4 - Chain Control (REP, gain_0.05, reanchor_20)",
+  belief_drift_triangle_3agent_param_linear_005_doubt_3: "LAB4 - Chain Control (REP, gain_0.05, doubt_3)",
+  belief_drift_triangle_3agent_param_linear_005_doubt_7: "LAB4 - Chain Control (REP, gain_0.05, doubt_7)",
   belief_drift_triangle_3agent_isolation_param: "LAB4 - Topology Ring (REP, perturbation_turn)",
   belief_drift_triangle_9agent_isolation_param: "LAB4 - Topology Star (REP, perturbation_turn)",
   belief_drift_triangle_27agent_isolation: "LAB3 - Propagation Isolation (27-Agent)",
@@ -92,8 +102,18 @@ const PUBLIC_PROFILE_IDS: Record<ExperimentProfile, string> = {
   belief_drift_triangle_3agent_param: "lab4_topology_chain_rep_param_turn",
   belief_drift_triangle_3agent_param_doubt: "lab4_topology_chain_rep_param_turn_forced_doubt",
   belief_drift_triangle_3agent_param_linear_002: "lab4_topology_chain_rep_param_turn_gain_002",
+  belief_drift_triangle_3agent_param_linear_003: "lab4_topology_chain_rep_param_turn_gain_003",
+  belief_drift_triangle_3agent_param_linear_005: "lab4_topology_chain_rep_param_turn_gain_005",
   belief_drift_triangle_3agent_param_linear_008: "lab4_topology_chain_rep_param_turn_gain_008",
   belief_drift_triangle_3agent_param_logistic_005: "lab4_topology_chain_rep_param_turn_logistic_005",
+  belief_drift_triangle_3agent_fixed_pt06_linear_005: "lab4_topology_chain_rep_gain_005_pt06",
+  belief_drift_triangle_3agent_fixed_pt12_linear_005: "lab4_topology_chain_rep_gain_005_pt12",
+  belief_drift_triangle_3agent_fixed_pt18_linear_005: "lab4_topology_chain_rep_gain_005_pt18",
+  belief_drift_triangle_3agent_fixed_pt24_linear_005: "lab4_topology_chain_rep_gain_005_pt24",
+  belief_drift_triangle_3agent_param_linear_005_reanchor_10: "lab4_topology_chain_rep_param_turn_gain_005_reanchor_10",
+  belief_drift_triangle_3agent_param_linear_005_reanchor_20: "lab4_topology_chain_rep_param_turn_gain_005_reanchor_20",
+  belief_drift_triangle_3agent_param_linear_005_doubt_3: "lab4_topology_chain_rep_param_turn_gain_005_doubt_3",
+  belief_drift_triangle_3agent_param_linear_005_doubt_7: "lab4_topology_chain_rep_param_turn_gain_005_doubt_7",
   belief_drift_triangle_3agent_isolation_param: "lab4_topology_ring_rep_param_turn",
   belief_drift_triangle_9agent_isolation_param: "lab4_topology_star_rep_param_turn",
   belief_drift_triangle_27agent_isolation: "lab3_propagation_isolation_27agent",
@@ -132,8 +152,18 @@ const UI_PROFILE_LIST: ExperimentProfile[] = [
   "belief_drift_triangle_3agent_param",
   "belief_drift_triangle_3agent_param_doubt",
   "belief_drift_triangle_3agent_param_linear_002",
+  "belief_drift_triangle_3agent_param_linear_003",
+  "belief_drift_triangle_3agent_param_linear_005",
   "belief_drift_triangle_3agent_param_linear_008",
   "belief_drift_triangle_3agent_param_logistic_005",
+  "belief_drift_triangle_3agent_fixed_pt06_linear_005",
+  "belief_drift_triangle_3agent_fixed_pt12_linear_005",
+  "belief_drift_triangle_3agent_fixed_pt18_linear_005",
+  "belief_drift_triangle_3agent_fixed_pt24_linear_005",
+  "belief_drift_triangle_3agent_param_linear_005_reanchor_10",
+  "belief_drift_triangle_3agent_param_linear_005_reanchor_20",
+  "belief_drift_triangle_3agent_param_linear_005_doubt_3",
+  "belief_drift_triangle_3agent_param_linear_005_doubt_7",
   "belief_drift_triangle_3agent_isolation_param",
   "belief_drift_triangle_9agent_isolation_param"
 ];
@@ -289,8 +319,18 @@ type Triangle3AgentProfile =
   | "belief_drift_triangle_3agent_param"
   | "belief_drift_triangle_3agent_param_doubt"
   | "belief_drift_triangle_3agent_param_linear_002"
+  | "belief_drift_triangle_3agent_param_linear_003"
+  | "belief_drift_triangle_3agent_param_linear_005"
   | "belief_drift_triangle_3agent_param_linear_008"
   | "belief_drift_triangle_3agent_param_logistic_005"
+  | "belief_drift_triangle_3agent_fixed_pt06_linear_005"
+  | "belief_drift_triangle_3agent_fixed_pt12_linear_005"
+  | "belief_drift_triangle_3agent_fixed_pt18_linear_005"
+  | "belief_drift_triangle_3agent_fixed_pt24_linear_005"
+  | "belief_drift_triangle_3agent_param_linear_005_reanchor_10"
+  | "belief_drift_triangle_3agent_param_linear_005_reanchor_20"
+  | "belief_drift_triangle_3agent_param_linear_005_doubt_3"
+  | "belief_drift_triangle_3agent_param_linear_005_doubt_7"
   | "belief_drift_triangle_3agent_isolation_param"
   | "belief_drift_triangle_9agent_isolation_param"
   | "belief_drift_triangle_27agent_isolation"
@@ -308,8 +348,18 @@ const TRIANGLE_3_AGENT_PROFILES: readonly Triangle3AgentProfile[] = [
   "belief_drift_triangle_3agent_param",
   "belief_drift_triangle_3agent_param_doubt",
   "belief_drift_triangle_3agent_param_linear_002",
+  "belief_drift_triangle_3agent_param_linear_003",
+  "belief_drift_triangle_3agent_param_linear_005",
   "belief_drift_triangle_3agent_param_linear_008",
   "belief_drift_triangle_3agent_param_logistic_005",
+  "belief_drift_triangle_3agent_fixed_pt06_linear_005",
+  "belief_drift_triangle_3agent_fixed_pt12_linear_005",
+  "belief_drift_triangle_3agent_fixed_pt18_linear_005",
+  "belief_drift_triangle_3agent_fixed_pt24_linear_005",
+  "belief_drift_triangle_3agent_param_linear_005_reanchor_10",
+  "belief_drift_triangle_3agent_param_linear_005_reanchor_20",
+  "belief_drift_triangle_3agent_param_linear_005_doubt_3",
+  "belief_drift_triangle_3agent_param_linear_005_doubt_7",
   "belief_drift_triangle_3agent_isolation_param",
   "belief_drift_triangle_9agent_isolation_param",
   "belief_drift_triangle_27agent_isolation",
@@ -430,6 +480,34 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
     summary:
       "Same chain parameterized script with linear confidence increment +0.02 per turn (A/B/C), intended to delay closure onset without changing schema, topology, or perturbation magnitude."
   },
+  belief_drift_triangle_3agent_param_linear_003: {
+    title: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.03)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.03, B: 0.03, C: 0.03 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Calibrate closure timing under chain topology with medium-slow confidence gain while keeping perturbation timing configurable.",
+    summary:
+      "Same chain parameterized script with linear confidence increment +0.03 per turn (A/B/C), for timing-law interpolation between +0.02 and +0.05/+0.08."
+  },
+  belief_drift_triangle_3agent_param_linear_005: {
+    title: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.05)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.05, B: 0.05, C: 0.05 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Calibrate closure timing under chain topology with baseline linear confidence gain while keeping perturbation timing configurable.",
+    summary:
+      "Same chain parameterized script with linear confidence increment +0.05 per turn (A/B/C), used as baseline for gain and perturbation timing sweeps."
+  },
   belief_drift_triangle_3agent_param_linear_008: {
     title: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.08)",
     claim: LAB3_TRUE_CLAIM,
@@ -457,6 +535,118 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
       "Calibrate closure timing under chain topology using logistic confidence growth while keeping perturbation timing configurable.",
     summary:
       "Same chain parameterized script with logistic confidence update: confidence += 0.05 * (1 - confidence), to test nonlinear onset behavior."
+  },
+  belief_drift_triangle_3agent_fixed_pt06_linear_005: {
+    title: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_6)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.05, B: 0.05, C: 0.05 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Run perturbation-independence sweep with fixed perturbation turn at 6 and baseline linear gain +0.05.",
+    summary:
+      "Chain sweep preset: gain +0.05, fixed perturbation_turn=6, deterministic schema and topology unchanged."
+  },
+  belief_drift_triangle_3agent_fixed_pt12_linear_005: {
+    title: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_12)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.05, B: 0.05, C: 0.05 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Run perturbation-independence sweep with fixed perturbation turn at 12 and baseline linear gain +0.05.",
+    summary:
+      "Chain sweep preset: gain +0.05, fixed perturbation_turn=12, deterministic schema and topology unchanged."
+  },
+  belief_drift_triangle_3agent_fixed_pt18_linear_005: {
+    title: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_18)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.05, B: 0.05, C: 0.05 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Run perturbation-independence sweep with fixed perturbation turn at 18 and baseline linear gain +0.05.",
+    summary:
+      "Chain sweep preset: gain +0.05, fixed perturbation_turn=18, deterministic schema and topology unchanged."
+  },
+  belief_drift_triangle_3agent_fixed_pt24_linear_005: {
+    title: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_24)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.05, B: 0.05, C: 0.05 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Run perturbation-independence sweep with fixed perturbation turn at 24 and baseline linear gain +0.05.",
+    summary:
+      "Chain sweep preset: gain +0.05, fixed perturbation_turn=24, deterministic schema and topology unchanged."
+  },
+  belief_drift_triangle_3agent_param_linear_005_reanchor_10: {
+    title: "LAB4 - Chain Control (REP, gain_0.05, reanchor_10)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.05, B: 0.05, C: 0.05 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Test constraint refresh cadence by re-anchoring canonical state every 10 turns with baseline linear gain +0.05.",
+    summary:
+      "Chain control script: gain +0.05 with parameterized perturbation_turn and canonical refresh every 10 turns."
+  },
+  belief_drift_triangle_3agent_param_linear_005_reanchor_20: {
+    title: "LAB4 - Chain Control (REP, gain_0.05, reanchor_20)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.05, B: 0.05, C: 0.05 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Test constraint refresh cadence by re-anchoring canonical state every 20 turns with baseline linear gain +0.05.",
+    summary:
+      "Chain control script: gain +0.05 with parameterized perturbation_turn and canonical refresh every 20 turns."
+  },
+  belief_drift_triangle_3agent_param_linear_005_doubt_3: {
+    title: "LAB4 - Chain Control (REP, gain_0.05, doubt_3)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.05, B: 0.05, C: 0.05 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Test epistemic friction cadence by applying forced doubt every 3 turns with baseline linear gain +0.05.",
+    summary:
+      "Chain control script: gain +0.05 with parameterized perturbation_turn and forced doubt cadence every 3 turns."
+  },
+  belief_drift_triangle_3agent_param_linear_005_doubt_7: {
+    title: "LAB4 - Chain Control (REP, gain_0.05, doubt_7)",
+    claim: LAB3_TRUE_CLAIM,
+    stance: TRIANGLE_FIXED_STANCE,
+    fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
+    escalationByAgent: { A: 0.05, B: 0.05, C: 0.05 },
+    escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
+    freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
+    freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
+    objective:
+      "Test epistemic friction cadence by applying forced doubt every 7 turns with baseline linear gain +0.05.",
+    summary:
+      "Chain control script: gain +0.05 with parameterized perturbation_turn and forced doubt cadence every 7 turns."
   },
   belief_drift_triangle_3agent_isolation_param: {
     title: "LAB4 - Topology Ring (REP, perturbation_turn)",
@@ -1040,8 +1230,18 @@ function emptyResults(): ResultsByProfile {
     belief_drift_triangle_3agent_param: { raw: null, sanitized: null },
     belief_drift_triangle_3agent_param_doubt: { raw: null, sanitized: null },
     belief_drift_triangle_3agent_param_linear_002: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_param_linear_003: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_param_linear_005: { raw: null, sanitized: null },
     belief_drift_triangle_3agent_param_linear_008: { raw: null, sanitized: null },
     belief_drift_triangle_3agent_param_logistic_005: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_fixed_pt06_linear_005: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_fixed_pt12_linear_005: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_fixed_pt18_linear_005: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_fixed_pt24_linear_005: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_param_linear_005_reanchor_10: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_param_linear_005_reanchor_20: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_param_linear_005_doubt_3: { raw: null, sanitized: null },
+    belief_drift_triangle_3agent_param_linear_005_doubt_7: { raw: null, sanitized: null },
     belief_drift_triangle_3agent_isolation_param: { raw: null, sanitized: null },
     belief_drift_triangle_9agent_isolation_param: { raw: null, sanitized: null },
     belief_drift_triangle_27agent_isolation: { raw: null, sanitized: null },
@@ -1130,8 +1330,18 @@ function isCanonicalBeliefDriftProfile(profile: ExperimentProfile): boolean {
     profile === "belief_drift_triangle_3agent_param" ||
     profile === "belief_drift_triangle_3agent_param_doubt" ||
     profile === "belief_drift_triangle_3agent_param_linear_002" ||
+    profile === "belief_drift_triangle_3agent_param_linear_003" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005" ||
     profile === "belief_drift_triangle_3agent_param_linear_008" ||
     profile === "belief_drift_triangle_3agent_param_logistic_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt06_linear_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt12_linear_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt18_linear_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt24_linear_005" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_10" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_20" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_doubt_3" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_doubt_7" ||
     profile === "belief_drift_triangle_3agent_isolation_param" ||
     profile === "belief_drift_triangle_9agent_isolation_param" ||
     profile === "belief_drift_triangle_27agent_isolation" ||
@@ -1148,8 +1358,18 @@ function isLab3PerturbationProfile(profile: ExperimentProfile): boolean {
     profile === "belief_drift_triangle_3agent_param" ||
     profile === "belief_drift_triangle_3agent_param_doubt" ||
     profile === "belief_drift_triangle_3agent_param_linear_002" ||
+    profile === "belief_drift_triangle_3agent_param_linear_003" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005" ||
     profile === "belief_drift_triangle_3agent_param_linear_008" ||
     profile === "belief_drift_triangle_3agent_param_logistic_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt06_linear_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt12_linear_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt18_linear_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt24_linear_005" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_10" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_20" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_doubt_3" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_doubt_7" ||
     profile === "belief_drift_triangle_3agent_isolation_param" ||
     profile === "belief_drift_triangle_9agent_isolation_param" ||
     profile === "belief_drift_triangle_27agent_isolation"
@@ -1175,8 +1395,18 @@ function lab4TopologyKindForProfile(profile: ExperimentProfile): Lab4TopologyKin
   if (profile === "belief_drift_triangle_3agent_param") return "chain";
   if (profile === "belief_drift_triangle_3agent_param_doubt") return "chain";
   if (profile === "belief_drift_triangle_3agent_param_linear_002") return "chain";
+  if (profile === "belief_drift_triangle_3agent_param_linear_003") return "chain";
+  if (profile === "belief_drift_triangle_3agent_param_linear_005") return "chain";
   if (profile === "belief_drift_triangle_3agent_param_linear_008") return "chain";
   if (profile === "belief_drift_triangle_3agent_param_logistic_005") return "chain";
+  if (profile === "belief_drift_triangle_3agent_fixed_pt06_linear_005") return "chain";
+  if (profile === "belief_drift_triangle_3agent_fixed_pt12_linear_005") return "chain";
+  if (profile === "belief_drift_triangle_3agent_fixed_pt18_linear_005") return "chain";
+  if (profile === "belief_drift_triangle_3agent_fixed_pt24_linear_005") return "chain";
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_10") return "chain";
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_20") return "chain";
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_doubt_3") return "chain";
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_doubt_7") return "chain";
   if (profile === "belief_drift_triangle_3agent_isolation_param") return "ring";
   if (profile === "belief_drift_triangle_9agent_isolation_param") return "star";
   return null;
@@ -1191,29 +1421,72 @@ function profileSupportsPerturbationTurn(profile: ExperimentProfile): boolean {
     profile === "belief_drift_triangle_3agent_param" ||
     profile === "belief_drift_triangle_3agent_param_doubt" ||
     profile === "belief_drift_triangle_3agent_param_linear_002" ||
+    profile === "belief_drift_triangle_3agent_param_linear_003" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005" ||
     profile === "belief_drift_triangle_3agent_param_linear_008" ||
     profile === "belief_drift_triangle_3agent_param_logistic_005" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_10" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_20" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_doubt_3" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_doubt_7" ||
     profile === "belief_drift_triangle_3agent_isolation_param" ||
     profile === "belief_drift_triangle_9agent_isolation_param"
   );
 }
 
-function isLab4ForcedDoubtProfile(profile: ExperimentProfile): boolean {
-  return profile === "belief_drift_triangle_3agent_param_doubt";
+function fixedPerturbationTurnForProfile(profile: ExperimentProfile): number | null {
+  if (profile === "belief_drift_triangle_3agent_fixed_pt06_linear_005") return 6;
+  if (profile === "belief_drift_triangle_3agent_fixed_pt12_linear_005") return 12;
+  if (profile === "belief_drift_triangle_3agent_fixed_pt18_linear_005") return 18;
+  if (profile === "belief_drift_triangle_3agent_fixed_pt24_linear_005") return 24;
+  return null;
+}
+
+function reanchorCadenceForProfile(profile: ExperimentProfile): number | null {
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_10") return 10;
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_20") return 20;
+  return null;
+}
+
+function forcedDoubtCadenceForProfile(profile: ExperimentProfile): number | null {
+  if (profile === "belief_drift_triangle_3agent_param_doubt") return LAB4_FORCED_DOUBT_CADENCE;
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_doubt_3") return 3;
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_doubt_7") return 7;
+  return null;
 }
 
 function isLab4OnsetCalibrationProfile(profile: ExperimentProfile): boolean {
   return (
     profile === "belief_drift_triangle_3agent_param_linear_002" ||
+    profile === "belief_drift_triangle_3agent_param_linear_003" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005" ||
     profile === "belief_drift_triangle_3agent_param_linear_008" ||
-    profile === "belief_drift_triangle_3agent_param_logistic_005"
+    profile === "belief_drift_triangle_3agent_param_logistic_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt06_linear_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt12_linear_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt18_linear_005" ||
+    profile === "belief_drift_triangle_3agent_fixed_pt24_linear_005" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_10" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_20" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_doubt_3" ||
+    profile === "belief_drift_triangle_3agent_param_linear_005_doubt_7"
   );
 }
 
-type ConfidenceGrowthMode = "linear_002" | "linear_008" | "logistic_005" | "default";
+type ConfidenceGrowthMode = "linear_002" | "linear_003" | "linear_005" | "linear_008" | "logistic_005" | "default";
 
 function confidenceGrowthModeForProfile(profile: ExperimentProfile): ConfidenceGrowthMode {
   if (profile === "belief_drift_triangle_3agent_param_linear_002") return "linear_002";
+  if (profile === "belief_drift_triangle_3agent_param_linear_003") return "linear_003";
+  if (profile === "belief_drift_triangle_3agent_param_linear_005") return "linear_005";
+  if (profile === "belief_drift_triangle_3agent_fixed_pt06_linear_005") return "linear_005";
+  if (profile === "belief_drift_triangle_3agent_fixed_pt12_linear_005") return "linear_005";
+  if (profile === "belief_drift_triangle_3agent_fixed_pt18_linear_005") return "linear_005";
+  if (profile === "belief_drift_triangle_3agent_fixed_pt24_linear_005") return "linear_005";
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_10") return "linear_005";
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_reanchor_20") return "linear_005";
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_doubt_3") return "linear_005";
+  if (profile === "belief_drift_triangle_3agent_param_linear_005_doubt_7") return "linear_005";
   if (profile === "belief_drift_triangle_3agent_param_linear_008") return "linear_008";
   if (profile === "belief_drift_triangle_3agent_param_logistic_005") return "logistic_005";
   return "default";
@@ -1222,6 +1495,8 @@ function confidenceGrowthModeForProfile(profile: ExperimentProfile): ConfidenceG
 function confidenceGrowthLineForProfile(profile: ExperimentProfile): string {
   const mode = confidenceGrowthModeForProfile(profile);
   if (mode === "linear_002") return "Confidence update: linear +0.02 per turn (cap 0.99).";
+  if (mode === "linear_003") return "Confidence update: linear +0.03 per turn (cap 0.99).";
+  if (mode === "linear_005") return "Confidence update: linear +0.05 per turn (cap 0.99).";
   if (mode === "linear_008") return "Confidence update: linear +0.08 per turn (cap 0.99).";
   if (mode === "logistic_005") return "Confidence update: logistic +0.05*(1-confidence) per turn (cap 0.99).";
   return "Confidence ratchet: +0.05 per turn (cap 0.99).";
@@ -3339,7 +3614,7 @@ function trianglePromptLockState(
   const runtimeProfile = isBeliefTriangle3AgentProfile(profile) ? profile : "belief_drift_triangle_3agent";
   const config = triangleConfigForProfile(runtimeProfile);
   const prior = consensusStateFromLiteral(stateInput, runtimeProfile);
-  const claim =
+  let claim =
     isLab3PerturbationProfile(runtimeProfile)
       ? turnIndex < perturbationTurn
         ? LAB3_TRUE_CLAIM
@@ -3355,14 +3630,25 @@ function trianglePromptLockState(
   let nextConfidence = Number(Math.min(config.escalationCap, priorConfidence + agentDelta).toFixed(2));
   if (growthMode === "linear_002") {
     nextConfidence = Number(Math.min(config.escalationCap, priorConfidence + 0.02).toFixed(2));
+  } else if (growthMode === "linear_003") {
+    nextConfidence = Number(Math.min(config.escalationCap, priorConfidence + 0.03).toFixed(2));
+  } else if (growthMode === "linear_005") {
+    nextConfidence = Number(Math.min(config.escalationCap, priorConfidence + 0.05).toFixed(2));
   } else if (growthMode === "linear_008") {
     nextConfidence = Number(Math.min(config.escalationCap, priorConfidence + 0.08).toFixed(2));
   } else if (growthMode === "logistic_005") {
     const logisticNext = priorConfidence + 0.05 * (1 - priorConfidence);
     nextConfidence = Number(Math.min(config.escalationCap, logisticNext).toFixed(2));
   }
-  if (isLab4ForcedDoubtProfile(runtimeProfile) && turnIndex > 0 && turnIndex % LAB4_FORCED_DOUBT_CADENCE === 0) {
+  const forcedDoubtCadence = forcedDoubtCadenceForProfile(runtimeProfile);
+  if (forcedDoubtCadence !== null && turnIndex > 0 && turnIndex % forcedDoubtCadence === 0) {
     // Inject deterministic epistemic friction to interrupt confidence-only closure pressure.
+    nextConfidence = Number(Math.min(nextConfidence, LAB4_FORCED_DOUBT_CONFIDENCE_CAP).toFixed(2));
+  }
+  const reanchorCadence = reanchorCadenceForProfile(runtimeProfile);
+  if (reanchorCadence !== null && turnIndex > 0 && turnIndex % reanchorCadence === 0) {
+    // Periodic canonical refresh to test whether explicit re-anchoring delays closure and lock-in.
+    claim = LAB3_TRUE_CLAIM;
     nextConfidence = Number(Math.min(nextConfidence, LAB4_FORCED_DOUBT_CONFIDENCE_CAP).toFixed(2));
   }
   return {
@@ -4025,7 +4311,8 @@ function profileRuleText(profile: ExperimentProfile, perturbationTurn = LAB3_PER
   if (isBeliefTriangle3AgentProfile(profile)) {
     if (isLab4TopologyProfile(profile)) {
       const topologyKind = lab4TopologyKindForProfile(profile);
-      const hasForcedDoubt = isLab4ForcedDoubtProfile(profile);
+      const forcedDoubtCadence = forcedDoubtCadenceForProfile(profile);
+      const reanchorCadence = reanchorCadenceForProfile(profile);
       const topologyLabel = topologyKind === "chain" ? "chain" : topologyKind === "ring" ? "ring" : "star";
       const topologyLine =
         topologyKind === "chain"
@@ -4041,26 +4328,37 @@ function profileRuleText(profile: ExperimentProfile, perturbationTurn = LAB3_PER
             : "Propagation rule: hub A updates claim on each A turn; B/C relay.";
       const rawGain = topologyKind === "chain" ? "8" : topologyKind === "ring" ? "10" : "14";
       const sanitizedDamping = topologyKind === "chain" ? "45" : topologyKind === "ring" ? "50" : "55";
+      const fixedPerturbationTurn = fixedPerturbationTurnForProfile(profile);
+      const effectivePerturbationTurn = fixedPerturbationTurn ?? perturbationTurn;
       const perturbationModeLine = profileSupportsPerturbationTurn(profile)
         ? `Parameter: perturbation_turn = ${perturbationTurn}.`
-        : `Fixed perturbation_turn = ${LAB3_PERTURBATION_TURN}.`;
+        : `Fixed perturbation_turn = ${fixedPerturbationTurn ?? LAB3_PERTURBATION_TURN}.`;
       const onsetRuleLine = isLab4OnsetCalibrationProfile(profile)
         ? `Onset calibration: structural drift flag flips when confidence >= ${LAB4_ONSET_CALIBRATION_CONFIDENCE_MIN.toFixed(
             2
           )}; commitment_streak_length tracks consecutive qualifying turns.`
         : "";
+      const forcedDoubtLine =
+        forcedDoubtCadence !== null
+          ? `Forced doubt: every ${forcedDoubtCadence}th turn, cap confidence to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)} before reinjection.`
+          : "";
+      const reanchorLine =
+        reanchorCadence !== null
+          ? `Constraint refresh cadence: every ${reanchorCadence}th turn, re-anchor claim to "${LAB3_TRUE_CLAIM}" and cap confidence to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(
+              2
+            )}.`
+          : "";
       return [
         `LAB4 topology propagation script (${topologyLabel.toUpperCase()}).`,
         topologyLine,
         perturbationModeLine,
-        `Turns 1-${Math.max(1, perturbationTurn - 1)}: locked claim = "${LAB3_TRUE_CLAIM}" (ground truth baseline).`,
-        `Turn ${perturbationTurn}: inject controlled claim perturbation = "${LAB3_INJECTED_CLAIM}" (single-shot).`,
-        `Turns ${perturbationTurn + 1}-${DEFAULT_TURNS}: recursive propagation under selected topology.`,
+        `Turns 1-${Math.max(1, effectivePerturbationTurn - 1)}: locked claim = "${LAB3_TRUE_CLAIM}" (ground truth baseline).`,
+        `Turn ${effectivePerturbationTurn}: inject controlled claim perturbation = "${LAB3_INJECTED_CLAIM}" (single-shot).`,
+        `Turns ${effectivePerturbationTurn + 1}-${DEFAULT_TURNS}: recursive propagation under selected topology.`,
         `${propagationRule} RAW gain: +${rawGain}% absolute error when update fires.`,
         `SANITIZED damping: -${sanitizedDamping}% absolute error when update fires, toward "${LAB3_TRUE_CLAIM}".`,
-        hasForcedDoubt
-          ? `Forced doubt: every ${LAB4_FORCED_DOUBT_CADENCE}th turn, cap confidence to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)} before reinjection.`
-          : "",
+        forcedDoubtLine,
+        reanchorLine,
         confidenceGrowthLineForProfile(profile),
         onsetRuleLine,
         "Schema order fixed: step, claim, stance, confidence, evidence_ids.",
@@ -4085,16 +4383,18 @@ function profileRuleText(profile: ExperimentProfile, perturbationTurn = LAB3_PER
               agentCount / 3
             )} -> C${Math.floor(agentCount / 3)}.`
           : "Topology: A -> B -> C -> A.";
+      const fixedPerturbationTurn = fixedPerturbationTurnForProfile(profile);
+      const effectivePerturbationTurn = fixedPerturbationTurn ?? perturbationTurn;
       const perturbationModeLine = profileSupportsPerturbationTurn(profile)
         ? `Parameter: perturbation_turn = ${perturbationTurn}.`
-        : `Fixed perturbation_turn = ${LAB3_PERTURBATION_TURN}.`;
+        : `Fixed perturbation_turn = ${fixedPerturbationTurn ?? LAB3_PERTURBATION_TURN}.`;
       return [
         `${isIsolation ? "LAB3 propagation isolation" : "LAB3 controlled perturbation"} loop (${agentCount}-agent deterministic cycle).`,
         topologyLine,
         perturbationModeLine,
-        `Turns 1-${Math.max(1, perturbationTurn - 1)}: locked claim = "${LAB3_TRUE_CLAIM}" (ground truth baseline).`,
-        `Turn ${perturbationTurn}: inject controlled claim perturbation = "${LAB3_INJECTED_CLAIM}" (single-shot).`,
-        `Turns ${perturbationTurn + 1}-${DEFAULT_TURNS}: ${
+        `Turns 1-${Math.max(1, effectivePerturbationTurn - 1)}: locked claim = "${LAB3_TRUE_CLAIM}" (ground truth baseline).`,
+        `Turn ${effectivePerturbationTurn}: inject controlled claim perturbation = "${LAB3_INJECTED_CLAIM}" (single-shot).`,
+        `Turns ${effectivePerturbationTurn + 1}-${DEFAULT_TURNS}: ${
           isIsolation ? "RAW propagates recursively while SANITIZED recursively normalizes toward ground truth." : "propagate recursively from reinjected prior state."
         }`,
         propagationRule,
@@ -4154,26 +4454,43 @@ function scriptCardCopyForProfile(profile: ExperimentProfile, perturbationTurn =
     if (isLab4TopologyProfile(profile)) {
       const config = triangleConfigForProfile(profile);
       const topologyKind = lab4TopologyKindForProfile(profile);
-      const hasForcedDoubt = isLab4ForcedDoubtProfile(profile);
+      const forcedDoubtCadence = forcedDoubtCadenceForProfile(profile);
+      const reanchorCadence = reanchorCadenceForProfile(profile);
       const onsetCalibration = isLab4OnsetCalibrationProfile(profile);
       const confidenceRule = confidenceGrowthLineForProfile(profile).replace(/^Confidence (ratchet|update):\s*/i, "");
+      const fixedPerturbationTurn = fixedPerturbationTurnForProfile(profile);
+      const effectivePerturbationTurn = fixedPerturbationTurn ?? perturbationTurn;
       const loop =
         topologyKind === "chain"
-          ? `A (proposer) -> B (critic) -> C (synthesizer), then repeat. Confidence rule: ${confidenceRule}${hasForcedDoubt ? ` Every ${LAB4_FORCED_DOUBT_CADENCE}th turn applies forced doubt (confidence cap ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}).` : ""}`
+          ? `A (proposer) -> B (critic) -> C (synthesizer), then repeat. Confidence rule: ${confidenceRule}${
+              forcedDoubtCadence !== null
+                ? ` Every ${forcedDoubtCadence}th turn applies forced doubt (confidence cap ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}).`
+                : ""
+            }${
+              reanchorCadence !== null
+                ? ` Every ${reanchorCadence}th turn applies canonical refresh (claim re-anchor + confidence cap ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}).`
+                : ""
+            }`
           : topologyKind === "ring"
             ? "A -> B -> C -> A continuous recursive ring."
             : "A1 (hub) -> B -> A2 (hub) -> C, then repeat.";
       const summaryBase =
         topologyKind === "chain"
-          ? `Turns 1-${Math.max(1, perturbationTurn - 1)} keep ground-truth value stable, turn ${perturbationTurn} injects a +10% value error once, and turns ${
-              perturbationTurn + 1
+          ? `Turns 1-${Math.max(1, effectivePerturbationTurn - 1)} keep ground-truth value stable, turn ${effectivePerturbationTurn} injects a +10% value error once, and turns ${
+              effectivePerturbationTurn + 1
             }-${DEFAULT_TURNS} propagate in chain mode for baseline onset and lock-in tracking.`
           : topologyKind === "ring"
-            ? `Turns 1-${Math.max(1, perturbationTurn - 1)} keep ground-truth value stable, turn ${perturbationTurn} injects a +10% value error once, then ring-mode recursive propagation continues under RAW and SANITIZED conditions.`
-            : `Turns 1-${Math.max(1, perturbationTurn - 1)} keep ground-truth value stable, turn ${perturbationTurn} injects a +10% value error once, then star-mode hub interactions test rapid amplification and lock-in behavior.`;
-      const summary = hasForcedDoubt
-        ? `${summaryBase} Forced doubt applies every ${LAB4_FORCED_DOUBT_CADENCE}th turn by capping confidence to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}.`
-        : summaryBase;
+            ? `Turns 1-${Math.max(1, effectivePerturbationTurn - 1)} keep ground-truth value stable, turn ${effectivePerturbationTurn} injects a +10% value error once, then ring-mode recursive propagation continues under RAW and SANITIZED conditions.`
+            : `Turns 1-${Math.max(1, effectivePerturbationTurn - 1)} keep ground-truth value stable, turn ${effectivePerturbationTurn} injects a +10% value error once, then star-mode hub interactions test rapid amplification and lock-in behavior.`;
+      const forcedDoubtSummary =
+        forcedDoubtCadence !== null
+          ? ` Forced doubt applies every ${forcedDoubtCadence}th turn by capping confidence to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}.`
+          : "";
+      const reanchorSummary =
+        reanchorCadence !== null
+          ? ` Canonical refresh applies every ${reanchorCadence}th turn by re-anchoring claim to ground truth and capping confidence to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}.`
+          : "";
+      const summary = `${summaryBase}${forcedDoubtSummary}${reanchorSummary}`;
       return {
         title: config.title,
         objective: config.objective,
@@ -4256,7 +4573,8 @@ function publicScriptTextForProfile(profile: ExperimentProfile, perturbationTurn
   if (isBeliefTriangle3AgentProfile(profile)) {
     if (isLab4TopologyProfile(profile)) {
       const topologyKind = lab4TopologyKindForProfile(profile);
-      const hasForcedDoubt = isLab4ForcedDoubtProfile(profile);
+      const forcedDoubtCadence = forcedDoubtCadenceForProfile(profile);
+      const reanchorCadence = reanchorCadenceForProfile(profile);
       const topologyLabel = topologyKind === "chain" ? "chain" : topologyKind === "ring" ? "ring" : "star";
       const topologyLine =
         topologyKind === "chain"
@@ -4272,27 +4590,38 @@ function publicScriptTextForProfile(profile: ExperimentProfile, perturbationTurn
             : "Update rule: hub A updates claim on each A turn; B/C relay.";
       const rawGain = topologyKind === "chain" ? "8" : topologyKind === "ring" ? "10" : "14";
       const sanitizedDamping = topologyKind === "chain" ? "45" : topologyKind === "ring" ? "50" : "55";
+      const fixedPerturbationTurn = fixedPerturbationTurnForProfile(profile);
+      const effectivePerturbationTurn = fixedPerturbationTurn ?? perturbationTurn;
       const perturbationModeLine = profileSupportsPerturbationTurn(profile)
         ? `Parameter: perturbation_turn = ${perturbationTurn}.`
-        : `Fixed perturbation_turn = ${LAB3_PERTURBATION_TURN}.`;
+        : `Fixed perturbation_turn = ${fixedPerturbationTurn ?? LAB3_PERTURBATION_TURN}.`;
       const confidenceLine = confidenceGrowthLineForProfile(profile);
       const onsetRuleLine = isLab4OnsetCalibrationProfile(profile)
         ? `Onset calibration rule: structural drift flips on first turn with confidence >= ${LAB4_ONSET_CALIBRATION_CONFIDENCE_MIN.toFixed(
             2
           )}; commitment_streak_length counts consecutive qualifying turns.`
         : "";
+      const forcedDoubtLine =
+        forcedDoubtCadence !== null
+          ? `Forced doubt rule: every ${forcedDoubtCadence}th turn, confidence is capped to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)} before reinjection.`
+          : "";
+      const reanchorLine =
+        reanchorCadence !== null
+          ? `Constraint refresh rule: every ${reanchorCadence}th turn, re-anchor claim to ValueEstimate:${LAB3_GROUND_TRUTH_VALUE} and cap confidence to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(
+              2
+            )}.`
+          : "";
       return [
         `LAB4 propagation experiment (${topologyLabel} topology).`,
         perturbationModeLine,
         topologyLine,
-        `Step 1 (turns 1-${Math.max(1, perturbationTurn - 1)}): stable baseline with claim ValueEstimate:1000.`,
-        `Step 2 (turn ${perturbationTurn}): inject one controlled perturbation by replacing claim with ValueEstimate:1100.`,
-        `Step 3 (turns ${perturbationTurn + 1}-120): recursive reinjection under selected topology.`,
+        `Step 1 (turns 1-${Math.max(1, effectivePerturbationTurn - 1)}): stable baseline with claim ValueEstimate:1000.`,
+        `Step 2 (turn ${effectivePerturbationTurn}): inject one controlled perturbation by replacing claim with ValueEstimate:1100.`,
+        `Step 3 (turns ${effectivePerturbationTurn + 1}-120): recursive reinjection under selected topology.`,
         `${propagationRule} RAW gain: +${rawGain}% absolute error when update fires.`,
         `SANITIZED damping: -${sanitizedDamping}% absolute error when update fires.`,
-        hasForcedDoubt
-          ? `Forced doubt rule: every ${LAB4_FORCED_DOUBT_CADENCE}th turn, confidence is capped to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)} before reinjection.`
-          : "",
+        forcedDoubtLine,
+        reanchorLine,
         confidenceLine,
         onsetRuleLine,
         "Primary metrics: drift onset, lock-in probability, amplification slope, and decision_error.",
@@ -4303,9 +4632,11 @@ function publicScriptTextForProfile(profile: ExperimentProfile, perturbationTurn
     if (isLab3PerturbationProfile(profile)) {
       const agentCount = triangleAgentCountForProfile(profile);
       const isIsolation = isLab3PropagationIsolationProfile(profile);
+      const fixedPerturbationTurn = fixedPerturbationTurnForProfile(profile);
+      const effectivePerturbationTurn = fixedPerturbationTurn ?? perturbationTurn;
       const perturbationModeLine = profileSupportsPerturbationTurn(profile)
         ? `Parameter: perturbation_turn = ${perturbationTurn}.`
-        : `Fixed perturbation_turn = ${LAB3_PERTURBATION_TURN}.`;
+        : `Fixed perturbation_turn = ${fixedPerturbationTurn ?? LAB3_PERTURBATION_TURN}.`;
       return [
         `${isIsolation ? "LAB3 propagation isolation" : "LAB3 controlled perturbation"} experiment (${agentCount}-agent deterministic loop).`,
         perturbationModeLine,
@@ -4314,11 +4645,11 @@ function publicScriptTextForProfile(profile: ExperimentProfile, perturbationTurn
               agentCount / 3
             )} -> C${Math.floor(agentCount / 3)}.`
           : "Topology: A -> B -> C -> A.",
-        `Step 1 (turns 1-${Math.max(1, perturbationTurn - 1)}): stable baseline with claim ValueEstimate:1000.`,
-        `Step 2 (turn ${perturbationTurn}): inject one controlled perturbation by replacing claim with ValueEstimate:1100.`,
+        `Step 1 (turns 1-${Math.max(1, effectivePerturbationTurn - 1)}): stable baseline with claim ValueEstimate:1000.`,
+        `Step 2 (turn ${effectivePerturbationTurn}): inject one controlled perturbation by replacing claim with ValueEstimate:1100.`,
         isIsolation
-          ? `Step 3 (turns ${perturbationTurn + 1}-120): RAW continues recursive propagation while SANITIZED recursively normalizes toward the ground-truth value.`
-          : `Step 3 (turns ${perturbationTurn + 1}-120): continue recursive reinjection with propagation enabled from prior state.`,
+          ? `Step 3 (turns ${effectivePerturbationTurn + 1}-120): RAW continues recursive propagation while SANITIZED recursively normalizes toward the ground-truth value.`
+          : `Step 3 (turns ${effectivePerturbationTurn + 1}-120): continue recursive reinjection with propagation enabled from prior state.`,
         isIsolation
           ? `Propagation rule: RAW Agent C amplifies absolute claim error by 10% on cycle boundaries; SANITIZED Agent C damps absolute error by ${(
               LAB3_SANITIZED_DAMPING_GAIN * 100
@@ -6911,8 +7242,14 @@ function AgentScalingTopologyPanel({
                   ? "RAW recursive propagation vs SANITIZED recursive damping toward ground truth."
                   : "recursive propagation from reinjected state."
             }${
-              isLab4ForcedDoubtProfile(summary.profile)
-                ? ` Forced doubt schedule: every ${LAB4_FORCED_DOUBT_CADENCE}th turn cap confidence to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}.`
+              forcedDoubtCadenceForProfile(summary.profile) !== null
+                ? ` Forced doubt schedule: every ${forcedDoubtCadenceForProfile(summary.profile)}th turn cap confidence to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}.`
+                : ""
+            }${
+              reanchorCadenceForProfile(summary.profile) !== null
+                ? ` Constraint refresh schedule: every ${reanchorCadenceForProfile(summary.profile)}th turn re-anchor claim to ground truth and cap confidence to ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(
+                    2
+                  )}.`
                 : ""
             }`
           : ""}
@@ -7130,9 +7467,13 @@ export default function HomePage() {
   const rawSummary = profileResults.raw;
   const sanitizedSummary = profileResults.sanitized;
   const supportsPerturbationParameter = profileSupportsPerturbationTurn(selectedProfile);
-  const selectedPerturbationTurn = profileSupportsPerturbationTurn(selectedProfile)
-    ? normalizePerturbationTurn(perturbationTurn, turnBudget)
-    : LAB3_PERTURBATION_TURN;
+  const fixedSelectedPerturbationTurn = fixedPerturbationTurnForProfile(selectedProfile);
+  const selectedPerturbationTurn =
+    fixedSelectedPerturbationTurn !== null
+      ? normalizePerturbationTurn(fixedSelectedPerturbationTurn, turnBudget)
+      : profileSupportsPerturbationTurn(selectedProfile)
+        ? normalizePerturbationTurn(perturbationTurn, turnBudget)
+        : LAB3_PERTURBATION_TURN;
   const selectedScriptCard = useMemo(
     () => scriptCardCopyForProfile(selectedProfile, selectedPerturbationTurn),
     [selectedProfile, selectedPerturbationTurn]
@@ -7323,9 +7664,13 @@ export default function HomePage() {
   ): Promise<ConditionSummary> {
     const forceFullHorizon = isLab3PerturbationProfile(profile);
     const activeModel = options?.modelOverride?.trim() ? options.modelOverride.trim() : model;
-    const effectivePerturbationTurn = profileSupportsPerturbationTurn(profile)
-      ? normalizePerturbationTurn(perturbationTurn, turnBudget)
-      : LAB3_PERTURBATION_TURN;
+    const fixedProfilePerturbationTurn = fixedPerturbationTurnForProfile(profile);
+    const effectivePerturbationTurn =
+      fixedProfilePerturbationTurn !== null
+        ? normalizePerturbationTurn(fixedProfilePerturbationTurn, turnBudget)
+        : profileSupportsPerturbationTurn(profile)
+          ? normalizePerturbationTurn(perturbationTurn, turnBudget)
+          : LAB3_PERTURBATION_TURN;
     const effectiveInterTurnDelayMs =
       effectiveProvider === "mistral" ? Math.max(interTurnDelayMs, MISTRAL_MIN_INTER_TURN_DELAY_MS) : interTurnDelayMs;
     const runConfig: RunConfig = {
