@@ -63,8 +63,8 @@ Summary:
 
 ## Environment variables
 
-- `GUARDIAN_CORE_URL` (default: `http://127.0.0.1:18101`)
-- `GUARDIAN_GATE_URL` (default: `http://127.0.0.1:18102`)
+- `GUARDIAN_CORE_URL` (default in development: `http://127.0.0.1:18101`; production fallback: `https://guardianai.fr/core`)
+- `GUARDIAN_GATE_URL` (default in development: `http://127.0.0.1:18102`; production fallback: `https://guardianai.fr/gate`)
 - `GUARDIAN_ENDPOINT_KEY`
 - API policy/rate limits:
   - `GUARDIAN_API_ALLOWED_ORIGINS`
@@ -81,4 +81,5 @@ Summary:
   - `MISTRAL_API_KEY`
 - Optional UI links:
   - `NEXT_PUBLIC_GUARDIAN_WEBSITE_URL`
+  - `NEXT_PUBLIC_SIGNAL_VISIBILITY` (`public` default for black-box signal surface, `private` for full diagnostics)
   - `NEXT_PUBLIC_GITHUB_REPO_URL`

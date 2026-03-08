@@ -53,11 +53,16 @@ function parseRetryAfterMs(rawHeader: string | null): number | null {
   return Math.max(0, epochMs - Date.now());
 }
 
-function retryDelayMs(attempt: number): number {
+function retryDelayMs(attempt: number, status?: number): number {
   const cappedAttempt = Math.max(1, Math.min(6, attempt));
+  if (status === 429) {
+    const base429 = 3500 * cappedAttempt;
+    const jitter429 = Math.floor(Math.random() * 400);
+    return Math.min(20_000, base429 + jitter429);
+  }
   const base = 250 * 2 ** (cappedAttempt - 1);
   const jitter = Math.floor(Math.random() * 150);
-  return Math.min(3000, base + jitter);
+  return Math.min(5000, base + jitter);
 }
 
 function payloadToMessage(payload: unknown): string {
@@ -210,7 +215,7 @@ async function postJson(url: string, init: RequestInit): Promise<unknown> {
       }
 
       const retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after"));
-      await sleep(retryAfterMs ?? retryDelayMs(attempt));
+      await sleep(retryAfterMs ?? retryDelayMs(attempt, response.status));
     } catch (error) {
       lastError = error;
       const retryableError = isAbortError(error) || isNetworkError(error);
@@ -473,6 +478,7 @@ export async function POST(request: NextRequest) {
           " Tip: the OpenAI key entered in UI is invalid/revoked for this request context. Use a Platform key from https://platform.openai.com/api-keys or configure OPENAI_API_KEY in Vercel. If key works locally but fails on Vercel, check OpenAI project/org settings and any IP allowlist.";
       }
     }
-    return NextResponse.json({ error: message }, { status: 500 });
+    const responseStatus = error instanceof HTTPStatusError ? error.status : 500;
+    return NextResponse.json({ error: message }, { status: responseStatus });
   }
 }
