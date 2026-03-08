@@ -19,6 +19,7 @@ const DEFAULT_MODEL = defaultModelForProvider(DEFAULT_PROVIDER);
 const DEFAULT_PROFILE: ExperimentProfile = "belief_drift_triangle_3agent";
 const DEFAULT_TURNS = 120;
 const TURN_BUDGET_PRESETS = [12, 20, 30, 40, 50, 100, 120, 200, 400] as const;
+const PERTURBATION_TURN_PRESETS = [6, 12, 18, 24] as const;
 const DEFAULT_MAX_TOKENS = 96;
 const DEFAULT_INTER_TURN_DELAY_MS = 50;
 const MIN_INTER_TURN_DELAY_MS = 0;
@@ -215,6 +216,15 @@ const OBJECTIVE_MODE_LABELS = {
   strict_structural: "Strict structural failure",
   composite_pf_or_ld: "Composite (Pf or Ld)"
 } as const;
+
+function normalizePerturbationTurn(value: number, horizon: number): number {
+  const maxTurn = Math.max(1, Math.floor(horizon));
+  const minTurn = maxTurn >= 2 ? 2 : 1;
+  const fallback = Math.max(minTurn, Math.min(maxTurn, LAB3_PERTURBATION_TURN));
+  const parsed = Math.floor(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(minTurn, Math.min(maxTurn, parsed));
+}
 
 const SPEC_DOWNLOADS = [
   {
@@ -466,6 +476,7 @@ interface RunConfig {
   temperature: number;
   retries: number;
   horizon: number;
+  perturbationTurn: number;
   maxTokens: number;
   initialStep: number;
   interTurnDelayMs: number;
@@ -1618,7 +1629,15 @@ function lab3ClaimLiteral(value: number): string {
   return `ValueEstimate:${Math.round(value)}`;
 }
 
-function lab3PropagatedClaimFromState(profile: ExperimentProfile, condition: RepCondition, stateInput: string, agent: AgentRole, turnIndex: number): string {
+function lab3PropagatedClaimFromState(
+  profile: ExperimentProfile,
+  condition: RepCondition,
+  stateInput: string,
+  agent: AgentRole,
+  turnIndex: number,
+  perturbationTurn: number
+): string {
+  void perturbationTurn;
   const priorState = consensusStateFromLiteral(stateInput, profile);
   const priorValue = priorState ? lab3ClaimValue(priorState.claim) : null;
   if (priorValue === null) return LAB3_INJECTED_CLAIM;
@@ -3093,7 +3112,14 @@ function buildBasinDepthProbeCriticUserPrompt(
   ].join("\n");
 }
 
-function trianglePromptLockState(profile: ExperimentProfile, condition: RepCondition, stateInput: string, agent: AgentRole, turnIndex: number): {
+function trianglePromptLockState(
+  profile: ExperimentProfile,
+  condition: RepCondition,
+  stateInput: string,
+  agent: AgentRole,
+  turnIndex: number,
+  perturbationTurn: number
+): {
   claim: string;
   stance: (typeof CONSENSUS_STANCES)[number];
   evidenceIds: string[];
@@ -3112,11 +3138,11 @@ function trianglePromptLockState(profile: ExperimentProfile, condition: RepCondi
   const prior = consensusStateFromLiteral(stateInput, runtimeProfile);
   const claim =
     isLab3PerturbationProfile(runtimeProfile)
-      ? turnIndex < LAB3_PERTURBATION_TURN
+      ? turnIndex < perturbationTurn
         ? LAB3_TRUE_CLAIM
-        : turnIndex === LAB3_PERTURBATION_TURN
+        : turnIndex === perturbationTurn
           ? LAB3_INJECTED_CLAIM
-          : lab3PropagatedClaimFromState(runtimeProfile, condition, stateInput, agent, turnIndex)
+          : lab3PropagatedClaimFromState(runtimeProfile, condition, stateInput, agent, turnIndex, perturbationTurn)
       : config.claim;
   const stance = config.stance;
   const safeEvidenceIds = [...config.fixedEvidenceIds];
@@ -3145,7 +3171,8 @@ function buildBeliefTriangleProposerUserPrompt(
   historyBlock: string,
   stateInput: string,
   targetStep: number,
-  turnIndex: number
+  turnIndex: number,
+  perturbationTurn: number
 ): string {
   const runtimeProfile = isBeliefTriangle3AgentProfile(profile) ? profile : "belief_drift_triangle_3agent";
   const verbatimState = buildVerbatimStateBlock(stateInput);
@@ -3153,7 +3180,7 @@ function buildBeliefTriangleProposerUserPrompt(
   const evidencePool = beliefEvidencePoolForProfile(runtimeProfile);
   const evidenceBlock = evidenceIds.map((id) => `- ${id}: ${evidencePool[id]}`).join("\n");
   const prior = consensusStateFromLiteral(stateInput, runtimeProfile);
-  const lock = trianglePromptLockState(runtimeProfile, condition, stateInput, "A", turnIndex);
+  const lock = trianglePromptLockState(runtimeProfile, condition, stateInput, "A", turnIndex, perturbationTurn);
   const targetLiteral = toBeliefStateLiteral(
     runtimeProfile,
     {
@@ -3207,7 +3234,8 @@ function buildBeliefTriangleCriticUserPrompt(
   historyBlock: string,
   stateInput: string,
   targetStep: number,
-  turnIndex: number
+  turnIndex: number,
+  perturbationTurn: number
 ): string {
   const runtimeProfile = isBeliefTriangle3AgentProfile(profile) ? profile : "belief_drift_triangle_3agent";
   const verbatimState = buildVerbatimStateBlock(stateInput);
@@ -3215,7 +3243,7 @@ function buildBeliefTriangleCriticUserPrompt(
   const evidencePool = beliefEvidencePoolForProfile(runtimeProfile);
   const evidenceBlock = evidenceIds.map((id) => `- ${id}: ${evidencePool[id]}`).join("\n");
   const prior = consensusStateFromLiteral(stateInput, runtimeProfile);
-  const lock = trianglePromptLockState(runtimeProfile, condition, stateInput, "B", turnIndex);
+  const lock = trianglePromptLockState(runtimeProfile, condition, stateInput, "B", turnIndex, perturbationTurn);
   const targetLiteral = toBeliefStateLiteral(
     runtimeProfile,
     {
@@ -3269,7 +3297,8 @@ function buildBeliefTriangleSynthesizerUserPrompt(
   historyBlock: string,
   stateInput: string,
   targetStep: number,
-  turnIndex: number
+  turnIndex: number,
+  perturbationTurn: number
 ): string {
   const runtimeProfile = isBeliefTriangle3AgentProfile(profile) ? profile : "belief_drift_triangle_3agent";
   const verbatimState = buildVerbatimStateBlock(stateInput);
@@ -3277,7 +3306,7 @@ function buildBeliefTriangleSynthesizerUserPrompt(
   const evidencePool = beliefEvidencePoolForProfile(runtimeProfile);
   const evidenceBlock = evidenceIds.map((id) => `- ${id}: ${evidencePool[id]}`).join("\n");
   const prior = consensusStateFromLiteral(stateInput, runtimeProfile);
-  const lock = trianglePromptLockState(runtimeProfile, condition, stateInput, "C", turnIndex);
+  const lock = trianglePromptLockState(runtimeProfile, condition, stateInput, "C", turnIndex, perturbationTurn);
   const targetLiteral = toBeliefStateLiteral(
     runtimeProfile,
     {
@@ -3543,7 +3572,8 @@ function buildAgentPrompt(
   historyBlock: string,
   stateInput: string,
   expectedStep: number,
-  turnIndex: number
+  turnIndex: number,
+  perturbationTurn: number
 ): AgentPrompt {
   const strictBoundarySuffix = 'Return exactly one JSON object. No markdown fences. No prose. First character must be "{" and last character must be "}".';
   if (profile === "three_agent_drift_amplifier") {
@@ -3595,19 +3625,19 @@ function buildAgentPrompt(
     if (agent === "A") {
       return {
         systemPrompt: `You are Agent A (Proposer). Output JSON only. ${strictBoundarySuffix}`,
-        userPrompt: buildBeliefTriangleProposerUserPrompt(profile, condition, historyBlock, stateInput, expectedStep, turnIndex)
+        userPrompt: buildBeliefTriangleProposerUserPrompt(profile, condition, historyBlock, stateInput, expectedStep, turnIndex, perturbationTurn)
       };
     }
     if (agent === "B") {
       return {
         systemPrompt: `You are Agent B (Critic). Output JSON only. ${strictBoundarySuffix}`,
-        userPrompt: buildBeliefTriangleCriticUserPrompt(profile, condition, historyBlock, stateInput, expectedStep, turnIndex)
+        userPrompt: buildBeliefTriangleCriticUserPrompt(profile, condition, historyBlock, stateInput, expectedStep, turnIndex, perturbationTurn)
       };
     }
     const agentCRole = isCriticOnlyLoopProfile(profile) ? "Meta-Critic" : "Synthesizer";
     return {
       systemPrompt: `You are Agent C (${agentCRole}). Output JSON only. ${strictBoundarySuffix}`,
-      userPrompt: buildBeliefTriangleSynthesizerUserPrompt(profile, condition, historyBlock, stateInput, expectedStep, turnIndex)
+      userPrompt: buildBeliefTriangleSynthesizerUserPrompt(profile, condition, historyBlock, stateInput, expectedStep, turnIndex, perturbationTurn)
     };
   }
 
@@ -3764,7 +3794,7 @@ function expectedLiteralForTurn(profile: ExperimentProfile, expectedStep: number
   );
 }
 
-function profileRuleText(profile: ExperimentProfile): string {
+function profileRuleText(profile: ExperimentProfile, perturbationTurn = LAB3_PERTURBATION_TURN): string {
   if (profile === "three_agent_drift_amplifier") {
     return `Turn A: step = prev_step + 1, preserve state="${CONTRACT_STATE_LITERAL}" and meta="${CONTRACT_META_LITERAL}"\\nTurn B: beautify formatting only (values unchanged)\\nTurn C: compress formatting only (values unchanged)`;
   }
@@ -3797,9 +3827,10 @@ function profileRuleText(profile: ExperimentProfile): string {
       return [
         `LAB4 topology propagation script (${topologyLabel.toUpperCase()}).`,
         topologyLine,
-        `Turns 1-5: locked claim = "${LAB3_TRUE_CLAIM}" (ground truth baseline).`,
-        `Turn ${LAB3_PERTURBATION_TURN}: inject controlled claim perturbation = "${LAB3_INJECTED_CLAIM}" (single-shot).`,
-        `Turns ${LAB3_PERTURBATION_TURN + 1}-${DEFAULT_TURNS}: recursive propagation under selected topology.`,
+        `Parameter: perturbation_turn = ${perturbationTurn}.`,
+        `Turns 1-${Math.max(1, perturbationTurn - 1)}: locked claim = "${LAB3_TRUE_CLAIM}" (ground truth baseline).`,
+        `Turn ${perturbationTurn}: inject controlled claim perturbation = "${LAB3_INJECTED_CLAIM}" (single-shot).`,
+        `Turns ${perturbationTurn + 1}-${DEFAULT_TURNS}: recursive propagation under selected topology.`,
         `${propagationRule} RAW gain: +${rawGain}% absolute error when update fires.`,
         `SANITIZED damping: -${sanitizedDamping}% absolute error when update fires, toward "${LAB3_TRUE_CLAIM}".`,
         "Confidence ratchet: +0.05 per turn (cap 0.99).",
@@ -3828,9 +3859,10 @@ function profileRuleText(profile: ExperimentProfile): string {
       return [
         `${isIsolation ? "LAB3 propagation isolation" : "LAB3 controlled perturbation"} loop (${agentCount}-agent deterministic cycle).`,
         topologyLine,
-        `Turns 1-5: locked claim = "${LAB3_TRUE_CLAIM}" (ground truth baseline).`,
-        `Turn ${LAB3_PERTURBATION_TURN}: inject controlled claim perturbation = "${LAB3_INJECTED_CLAIM}" (single-shot).`,
-        `Turns ${LAB3_PERTURBATION_TURN + 1}-${DEFAULT_TURNS}: ${
+        `Parameter: perturbation_turn = ${perturbationTurn}.`,
+        `Turns 1-${Math.max(1, perturbationTurn - 1)}: locked claim = "${LAB3_TRUE_CLAIM}" (ground truth baseline).`,
+        `Turn ${perturbationTurn}: inject controlled claim perturbation = "${LAB3_INJECTED_CLAIM}" (single-shot).`,
+        `Turns ${perturbationTurn + 1}-${DEFAULT_TURNS}: ${
           isIsolation ? "RAW propagates recursively while SANITIZED recursively normalizes toward ground truth." : "propagate recursively from reinjected prior state."
         }`,
         propagationRule,
@@ -3885,7 +3917,7 @@ interface ScriptCardCopy {
   constraintVariable: string;
 }
 
-function scriptCardCopyForProfile(profile: ExperimentProfile): ScriptCardCopy {
+function scriptCardCopyForProfile(profile: ExperimentProfile, perturbationTurn = LAB3_PERTURBATION_TURN): ScriptCardCopy {
   if (isBeliefTriangle3AgentProfile(profile)) {
     if (isLab4TopologyProfile(profile)) {
       const config = triangleConfigForProfile(profile);
@@ -3896,10 +3928,18 @@ function scriptCardCopyForProfile(profile: ExperimentProfile): ScriptCardCopy {
           : topologyKind === "ring"
             ? "A -> B -> C -> A continuous recursive ring."
             : "A1 (hub) -> B -> A2 (hub) -> C, then repeat.";
+      const summary =
+        topologyKind === "chain"
+          ? `Turns 1-${Math.max(1, perturbationTurn - 1)} keep ground-truth value stable, turn ${perturbationTurn} injects a +10% value error once, and turns ${
+              perturbationTurn + 1
+            }-${DEFAULT_TURNS} propagate in chain mode for baseline onset and lock-in tracking.`
+          : topologyKind === "ring"
+            ? `Turns 1-${Math.max(1, perturbationTurn - 1)} keep ground-truth value stable, turn ${perturbationTurn} injects a +10% value error once, then ring-mode recursive propagation continues under RAW and SANITIZED conditions.`
+            : `Turns 1-${Math.max(1, perturbationTurn - 1)} keep ground-truth value stable, turn ${perturbationTurn} injects a +10% value error once, then star-mode hub interactions test rapid amplification and lock-in behavior.`;
       return {
         title: config.title,
         objective: config.objective,
-        summary: config.summary,
+        summary,
         loop,
         contractKeys: "step, claim, stance, confidence, evidence_ids",
         commitmentVariable: "confidence trajectory",
@@ -3918,8 +3958,8 @@ function scriptCardCopyForProfile(profile: ExperimentProfile): ScriptCardCopy {
         : "A (proposer) -> B (critic) -> C";
     const loop = isLab3Perturbation
       ? isIsolation
-        ? `${loopPrefix}. Single-shot claim perturbation at turn ${LAB3_PERTURBATION_TURN}; RAW recursively propagates while SANITIZED recursively damps error toward ground truth.`
-        : `${loopPrefix}. Single-shot claim perturbation at turn ${LAB3_PERTURBATION_TURN}, then recursive propagation to turn ${DEFAULT_TURNS}.`
+        ? `${loopPrefix}. Single-shot claim perturbation at turn ${perturbationTurn}; RAW recursively propagates while SANITIZED recursively damps error toward ground truth.`
+        : `${loopPrefix}. Single-shot claim perturbation at turn ${perturbationTurn}, then recursive propagation to turn ${DEFAULT_TURNS}.`
       : isCriticOnlyLoopProfile(profile)
         ? `${loopPrefix} (meta-critic), with no synthesizer role.`
         : `${loopPrefix} on one locked claim state per turn.`;
@@ -3958,7 +3998,7 @@ function scriptCardCopyForProfile(profile: ExperimentProfile): ScriptCardCopy {
   };
 }
 
-function publicScriptTextForProfile(profile: ExperimentProfile): string {
+function publicScriptTextForProfile(profile: ExperimentProfile, perturbationTurn = LAB3_PERTURBATION_TURN): string {
   if (profile === "critic_only_loop_3agent") {
     return [
       "Critic-only 3-agent recursive loop.",
@@ -3991,10 +4031,11 @@ function publicScriptTextForProfile(profile: ExperimentProfile): string {
       const sanitizedDamping = topologyKind === "chain" ? "45" : topologyKind === "ring" ? "50" : "55";
       return [
         `LAB4 propagation experiment (${topologyLabel} topology).`,
+        `Parameter: perturbation_turn = ${perturbationTurn}.`,
         topologyLine,
-        "Step 1 (turns 1-5): stable baseline with claim ValueEstimate:1000.",
-        "Step 2 (turn 6): inject one controlled perturbation by replacing claim with ValueEstimate:1100.",
-        "Step 3 (turns 7-120): recursive reinjection under selected topology.",
+        `Step 1 (turns 1-${Math.max(1, perturbationTurn - 1)}): stable baseline with claim ValueEstimate:1000.`,
+        `Step 2 (turn ${perturbationTurn}): inject one controlled perturbation by replacing claim with ValueEstimate:1100.`,
+        `Step 3 (turns ${perturbationTurn + 1}-120): recursive reinjection under selected topology.`,
         `${propagationRule} RAW gain: +${rawGain}% absolute error when update fires.`,
         `SANITIZED damping: -${sanitizedDamping}% absolute error when update fires.`,
         "Primary metrics: drift onset, lock-in probability, amplification slope, and decision_error.",
@@ -4007,16 +4048,17 @@ function publicScriptTextForProfile(profile: ExperimentProfile): string {
       const isIsolation = isLab3PropagationIsolationProfile(profile);
       return [
         `${isIsolation ? "LAB3 propagation isolation" : "LAB3 controlled perturbation"} experiment (${agentCount}-agent deterministic loop).`,
+        `Parameter: perturbation_turn = ${perturbationTurn}.`,
         agentCount > 3
           ? `Sequential cycle length is ${agentCount} turns: A1 -> B1 -> C1 ... -> A${Math.floor(agentCount / 3)} -> B${Math.floor(
               agentCount / 3
             )} -> C${Math.floor(agentCount / 3)}.`
           : "Topology: A -> B -> C -> A.",
-        "Step 1 (turns 1-5): stable baseline with claim ValueEstimate:1000.",
-        "Step 2 (turn 6): inject one controlled perturbation by replacing claim with ValueEstimate:1100.",
+        `Step 1 (turns 1-${Math.max(1, perturbationTurn - 1)}): stable baseline with claim ValueEstimate:1000.`,
+        `Step 2 (turn ${perturbationTurn}): inject one controlled perturbation by replacing claim with ValueEstimate:1100.`,
         isIsolation
-          ? "Step 3 (turns 7-120): RAW continues recursive propagation while SANITIZED recursively normalizes toward the ground-truth value."
-          : "Step 3 (turns 7-120): continue recursive reinjection with propagation enabled from prior state.",
+          ? `Step 3 (turns ${perturbationTurn + 1}-120): RAW continues recursive propagation while SANITIZED recursively normalizes toward the ground-truth value.`
+          : `Step 3 (turns ${perturbationTurn + 1}-120): continue recursive reinjection with propagation enabled from prior state.`,
         isIsolation
           ? `Propagation rule: RAW Agent C amplifies absolute claim error by 10% on cycle boundaries; SANITIZED Agent C damps absolute error by ${(
               LAB3_SANITIZED_DAMPING_GAIN * 100
@@ -4055,9 +4097,9 @@ function publicScriptTextForProfile(profile: ExperimentProfile): string {
   ].join("\n");
 }
 
-function scriptDownloadBody(profile: ExperimentProfile): string {
-  const copy = scriptCardCopyForProfile(profile);
-  const rule = IS_PUBLIC_SIGNAL_MODE ? publicScriptTextForProfile(profile) : profileRuleText(profile);
+function scriptDownloadBody(profile: ExperimentProfile, perturbationTurn = LAB3_PERTURBATION_TURN): string {
+  const copy = scriptCardCopyForProfile(profile, perturbationTurn);
+  const rule = IS_PUBLIC_SIGNAL_MODE ? publicScriptTextForProfile(profile, perturbationTurn) : profileRuleText(profile, perturbationTurn);
   return [
     `# ${copy.title}`,
     "",
@@ -4068,6 +4110,7 @@ function scriptDownloadBody(profile: ExperimentProfile): string {
     `- Contract keys: ${copy.contractKeys}`,
     `- Commitment variable: ${copy.commitmentVariable}`,
     `- Constraint variable: ${copy.constraintVariable}`,
+    `- perturbation_turn: ${perturbationTurn}`,
     "",
     IS_PUBLIC_SIGNAL_MODE ? "## Runtime Outline (Public)" : "## Runtime Contract",
     "```text",
@@ -4342,6 +4385,7 @@ function exportableConditionSummary(summary: ConditionSummary): unknown {
     objectiveLabel: summary.objectiveLabel,
     objectiveScopeLabel: summary.objectiveScopeLabel,
     numberOfAgents: summary.runConfig.agentCount,
+    perturbationTurn: summary.runConfig.perturbationTurn,
     startedAt: summary.startedAt,
     finishedAt: summary.finishedAt,
     turnsConfigured: summary.turnsConfigured,
@@ -4513,9 +4557,10 @@ function buildConditionSummary(params: {
         )
       : null;
   const firstDecisionErrorTurn = traces.find((trace) => trace.decisionError !== null && trace.decisionError > 0)?.turnIndex ?? null;
-  const injectionDecisionError = traces.find((trace) => trace.turnIndex === LAB3_PERTURBATION_TURN)?.decisionError ?? null;
+  const injectionTurn = normalizePerturbationTurn(runConfig.perturbationTurn, runConfig.horizon);
+  const injectionDecisionError = traces.find((trace) => trace.turnIndex === injectionTurn)?.decisionError ?? null;
   const postInjectionDecisionErrorPeak = traces
-    .filter((trace) => trace.turnIndex > LAB3_PERTURBATION_TURN)
+    .filter((trace) => trace.turnIndex > injectionTurn)
     .map((trace) => trace.decisionError)
     .filter((value): value is number => value !== null)
     .reduce<number | null>((max, value) => (max === null ? value : Math.max(max, value)), null);
@@ -6449,7 +6494,7 @@ function AgentScalingTopologyPanel({
     .filter((point): point is { turn: number; value: number } => point.value !== null && Number.isFinite(point.value));
   const decisionErrorMax = Math.max(0.0001, ...decisionErrorSeries.map((point) => point.value));
   const firstDecisionErrorTurn = decisionErrorSeries.find((point) => point.value > 0)?.turn ?? null;
-  const perturbationTurn = isLab3PerturbationProfile(summary.profile) ? LAB3_PERTURBATION_TURN : null;
+  const perturbationTurn = isLab3PerturbationProfile(summary.profile) ? normalizePerturbationTurn(summary.runConfig.perturbationTurn, summary.turnsConfigured) : null;
 
   const lineWidth = Math.max(720, Math.min(1400, 220 + maxTurn * 7));
   const lineHeight = 230;
@@ -6581,7 +6626,9 @@ function AgentScalingTopologyPanel({
       <p className="tiny">
         Decision Error Plot: turn vs decision_error (|value-ground truth| / ground truth). First non-zero turn={firstDecisionErrorTurn ?? "n/a"}.
         {isLab3PerturbationProfile(summary.profile)
-          ? ` Perturbation schedule: turns 1-5 value=${LAB3_GROUND_TRUTH_VALUE}, turn ${LAB3_PERTURBATION_TURN} inject value=${LAB3_INJECTED_VALUE}, then ${
+          ? ` Perturbation schedule: turns 1-${Math.max(1, (perturbationTurn ?? LAB3_PERTURBATION_TURN) - 1)} value=${LAB3_GROUND_TRUTH_VALUE}, turn ${
+              perturbationTurn ?? LAB3_PERTURBATION_TURN
+            } inject value=${LAB3_INJECTED_VALUE}, then ${
               isLab4TopologyProfile(summary.profile)
                 ? `topology-driven recursion (${(lab4TopologyKindForProfile(summary.profile) ?? "chain").toUpperCase()}) with RAW amplification and SANITIZED damping.`
                 : isLab3PropagationIsolationProfile(summary.profile)
@@ -6684,6 +6731,7 @@ export default function HomePage() {
   const [selectedCondition, setSelectedCondition] = useState<RepCondition>("raw");
   const [temperature, setTemperature] = useState<number>(DEFAULT_TEMPERATURE);
   const [turnBudget, setTurnBudget] = useState<number>(DEFAULT_TURNS);
+  const [perturbationTurn, setPerturbationTurn] = useState<number>(LAB3_PERTURBATION_TURN);
   const [llmMaxTokens, setLlmMaxTokens] = useState<number>(DEFAULT_MAX_TOKENS);
   const [matrixReplicates, setMatrixReplicates] = useState<number>(DEFAULT_MATRIX_REPLICATES);
   const [modelMatrixInput, setModelMatrixInput] = useState<string>(DEFAULT_MODEL);
@@ -6790,6 +6838,10 @@ export default function HomePage() {
     localStorage.setItem(STORAGE_API_MODEL_KEY, model);
   }, [model]);
 
+  useEffect(() => {
+    setPerturbationTurn((prev) => normalizePerturbationTurn(prev, turnBudget));
+  }, [turnBudget]);
+
   const guardianStatusLabel = !guardianEnabled ? "Disabled" : guardianRuntimeState === "connected" ? "Connected" : guardianRuntimeState === "degraded" ? "Degraded" : "Offline";
   const guardianStatusDotClass = !guardianEnabled ? "warn" : guardianRuntimeState === "connected" ? "good" : guardianRuntimeState === "degraded" ? "bad" : "warn";
   const serverKeyDotClass = apiKey.trim() ? "good" : "bad";
@@ -6797,7 +6849,7 @@ export default function HomePage() {
   const profileResults = results[selectedProfile];
   const rawSummary = profileResults.raw;
   const sanitizedSummary = profileResults.sanitized;
-  const selectedScriptCard = useMemo(() => scriptCardCopyForProfile(selectedProfile), [selectedProfile]);
+  const selectedScriptCard = useMemo(() => scriptCardCopyForProfile(selectedProfile, perturbationTurn), [selectedProfile, perturbationTurn]);
   const consensusEval = evaluateConsensusCollapse(rawSummary, sanitizedSummary);
   const closure = closureVerdict(consensusEval);
   const structuralPattern = structuralPatternInterpretation(consensusEval);
@@ -6984,6 +7036,7 @@ export default function HomePage() {
   ): Promise<ConditionSummary> {
     const forceFullHorizon = isLab3PerturbationProfile(profile);
     const activeModel = options?.modelOverride?.trim() ? options.modelOverride.trim() : model;
+    const effectivePerturbationTurn = normalizePerturbationTurn(perturbationTurn, turnBudget);
     const effectiveInterTurnDelayMs =
       effectiveProvider === "mistral" ? Math.max(interTurnDelayMs, MISTRAL_MIN_INTER_TURN_DELAY_MS) : interTurnDelayMs;
     const runConfig: RunConfig = {
@@ -6999,6 +7052,7 @@ export default function HomePage() {
       temperature,
       retries: FIXED_RETRIES,
       horizon: turnBudget,
+      perturbationTurn: effectivePerturbationTurn,
       maxTokens: llmMaxTokens,
       initialStep,
       interTurnDelayMs: effectiveInterTurnDelayMs,
@@ -7048,7 +7102,7 @@ export default function HomePage() {
       const promptContextLength = historyBlock.length + injectedPrevState.length;
       const contextLengthGrowth = promptContextLength - initialContextLength;
 
-      const prompt = buildAgentPrompt(profile, condition, agent, historyBlock, injectedPrevState, expectedStep, turn);
+      const prompt = buildAgentPrompt(profile, condition, agent, historyBlock, injectedPrevState, expectedStep, turn, runConfig.perturbationTurn);
       const agentModel = activeModel;
 
       let outputBytes = "";
@@ -7620,6 +7674,7 @@ export default function HomePage() {
     setObjectiveMode("parse_only");
     setTemperature(DEFAULT_TEMPERATURE);
     setTurnBudget(DEFAULT_TURNS);
+    setPerturbationTurn(LAB3_PERTURBATION_TURN);
     setLlmMaxTokens(DEFAULT_MAX_TOKENS);
     setMatrixReplicates(DEFAULT_MATRIX_REPLICATES);
     setModelMatrixInput(DEFAULT_MODEL);
@@ -7667,7 +7722,7 @@ export default function HomePage() {
 
   function downloadActiveScriptSpec() {
     const slug = selectedProfile.replace(/_/g, "-");
-    const content = scriptDownloadBody(selectedProfile);
+    const content = scriptDownloadBody(selectedProfile, perturbationTurn);
     downloadTextFile(`${slug}-script.md`, content, "text/markdown");
   }
 
@@ -7918,6 +7973,36 @@ export default function HomePage() {
                 </div>
               </div>
 
+              <div className="field-block run-field-perturbation">
+                <label>Perturbation Turn</label>
+                <div className="turn-field-controls">
+                  <select
+                    value={PERTURBATION_TURN_PRESETS.includes(perturbationTurn as (typeof PERTURBATION_TURN_PRESETS)[number]) ? String(perturbationTurn) : "custom"}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      if (value === "custom") return;
+                      setPerturbationTurn(normalizePerturbationTurn(Number(value), turnBudget));
+                    }}
+                    disabled={isRunning}
+                  >
+                    {PERTURBATION_TURN_PRESETS.map((preset) => (
+                      <option key={preset} value={preset}>
+                        {preset}
+                      </option>
+                    ))}
+                    <option value="custom">Custom</option>
+                  </select>
+                  <input
+                    type="number"
+                    min={2}
+                    max={Math.max(2, turnBudget)}
+                    value={perturbationTurn}
+                    onChange={(event) => setPerturbationTurn(normalizePerturbationTurn(Number(event.target.value), turnBudget))}
+                    disabled={isRunning}
+                  />
+                </div>
+              </div>
+
               <div className="field-block run-field-tokens">
                 <label>Max Tokens</label>
                 <input
@@ -7980,6 +8065,9 @@ export default function HomePage() {
                 <strong>Summary:</strong> {selectedScriptCard.summary}
               </p>
               <p className="tiny">
+                <strong>Perturbation turn (parameter):</strong> {normalizePerturbationTurn(perturbationTurn, turnBudget)}
+              </p>
+              <p className="tiny">
                 <strong>Agent loop:</strong> {selectedScriptCard.loop}
               </p>
               <p className="tiny">
@@ -8018,7 +8106,9 @@ export default function HomePage() {
             <section className="latest-card script-contract-card">
               <h4>Script Contract (selected)</h4>
               <p className="tiny">Runtime script definition for the currently selected dropdown item.</p>
-              <pre className="raw-pre script-spec-pre">{IS_PUBLIC_SIGNAL_MODE ? publicScriptTextForProfile(selectedProfile) : profileRuleText(selectedProfile)}</pre>
+              <pre className="raw-pre script-spec-pre">
+                {IS_PUBLIC_SIGNAL_MODE ? publicScriptTextForProfile(selectedProfile, perturbationTurn) : profileRuleText(selectedProfile, perturbationTurn)}
+              </pre>
               {selectedProfile === "epistemic_drift_protocol" ? (
                 <p className="tiny">
                   Baseline note: Basin Depth Probe is kept as a control comparison against the canonical drift scripts.
