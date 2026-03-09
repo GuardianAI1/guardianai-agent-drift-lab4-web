@@ -7000,6 +7000,148 @@ function DriftPhasePlot({ rawSummary, sanitizedSummary }: { rawSummary: Conditio
   );
 }
 
+type TrajectoryVisualPhase = "open" | "basin_formation" | "closure" | "amplification";
+
+function trajectoryVisualPhase(summary: ConditionSummary | null): TrajectoryVisualPhase {
+  if (!summary || summary.traces.length === 0) return "open";
+  if (summary.firstDecisionErrorTurn !== null) return "amplification";
+  if (summary.firstStructuralDriftTurn !== null) return "closure";
+  if (summary.firstBasinFormationTurn !== null) return "basin_formation";
+  return "open";
+}
+
+function trajectoryVisualPhaseLabel(phase: TrajectoryVisualPhase): string {
+  switch (phase) {
+    case "basin_formation":
+      return "Basin Formation";
+    case "closure":
+      return "Closure";
+    case "amplification":
+      return "Amplification";
+    default:
+      return "Open";
+  }
+}
+
+function StructuralTrajectoryPane({
+  condition,
+  summary,
+  tick
+}: {
+  condition: RepCondition;
+  summary: ConditionSummary | null;
+  tick: number;
+}) {
+  const phase = trajectoryVisualPhase(summary);
+  const hasTraces = Boolean(summary && summary.traces.length > 0);
+  const basinDepthRaw = clamp01(summary?.beliefBasinDepth ?? 0);
+  const basinDepthEffective =
+    !hasTraces || phase === "open" ? basinDepthRaw * 0.25 : phase === "basin_formation" ? Math.max(0.12, basinDepthRaw) : Math.max(0.18, basinDepthRaw);
+  const latestDecisionError = Math.max(0, summary?.decisionErrorLatest ?? 0);
+  const cycleReinforcement = clamp01((summary?.cycleReinforcement3Latest ?? 0) / 0.25);
+
+  let motionAmplitude = 0.52;
+  if (phase === "basin_formation") {
+    motionAmplitude = 0.34 * Math.max(0.2, 1 - basinDepthEffective);
+  } else if (phase === "closure") {
+    motionAmplitude = 0.09 * Math.max(0.25, 1 - basinDepthEffective);
+  } else if (phase === "amplification") {
+    motionAmplitude = Math.min(0.44, 0.12 + clamp01(latestDecisionError / 1.8) * 0.24 + cycleReinforcement * 0.08);
+  }
+  if (!hasTraces) {
+    motionAmplitude = 0.2;
+  }
+
+  const phaseSpeed = phase === "amplification" ? 0.27 : 0.12;
+  const phaseOffset = condition === "raw" ? 0 : Math.PI / 2.5;
+  const wave = Math.sin(tick * phaseSpeed + phaseOffset);
+  const ballNormX = Math.max(-0.86, Math.min(0.86, wave * motionAmplitude));
+
+  const width = 320;
+  const height = 146;
+  const marginX = 14;
+  const centerX = width / 2;
+  const halfSpan = (width - marginX * 2) / 2;
+  const rimY = 30;
+  const basinDepthPx = 5 + basinDepthEffective * 44;
+  const curveY = (xNorm: number) => rimY + basinDepthPx * (1 - xNorm * xNorm);
+  const curvePath = Array.from({ length: 65 }, (_, index) => {
+    const xNorm = -1 + (index / 64) * 2;
+    const x = centerX + xNorm * halfSpan;
+    const y = curveY(xNorm);
+    return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+  }).join(" ");
+  const ballRadius = 8;
+  const ballX = centerX + ballNormX * halfSpan;
+  const ballY = curveY(ballNormX) - ballRadius + 1;
+  const thresholdXNorm = 0.78;
+  const thresholdX = centerX + thresholdXNorm * halfSpan;
+  const thresholdY = curveY(thresholdXNorm);
+
+  const phaseClass =
+    phase === "amplification"
+      ? "phase-amplifying"
+      : phase === "closure"
+        ? "phase-closure"
+        : phase === "basin_formation"
+          ? "phase-forming"
+          : "phase-open";
+
+  return (
+    <article className={`trajectory-pane ${condition}`}>
+      <div className="trajectory-pane-head">
+        <h5>{condition === "raw" ? "RAW Loop" : "SANITIZED Loop"}</h5>
+        <span className={`phase-chip ${phaseClass}`}>{trajectoryVisualPhaseLabel(phase)}</span>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} className="trajectory-svg" role="img" aria-label={`${condition} basin trajectory`}>
+        <path d={curvePath} className="trajectory-basin" />
+        <line x1={thresholdX} y1={Math.max(6, thresholdY - 34)} x2={thresholdX} y2={Math.max(16, thresholdY - 2)} className="trajectory-threshold" />
+        <text x={Math.min(width - 6, thresholdX + 6)} y={Math.max(14, thresholdY - 36)} className="trajectory-label">
+          threshold
+        </text>
+        <circle cx={ballX + 2} cy={ballY + 2} r={ballRadius} className="trajectory-ball-shadow" />
+        <circle cx={ballX} cy={ballY} r={ballRadius} className="trajectory-ball" />
+      </svg>
+      <p className="tiny trajectory-meta">
+        Basin turn: {summary?.firstBasinFormationTurn ?? "N/A"} | Closure turn: {summary?.firstStructuralDriftTurn ?? "N/A"} | Amplification turn:{" "}
+        {summary?.firstDecisionErrorTurn ?? "N/A"}
+      </p>
+      <p className="tiny trajectory-meta">
+        Basin state: {basinStateLabel(summary?.basinStateLatest ?? null)} | depth: {asFixed(summary?.beliefBasinDepth ?? null, 3)} | strength:{" "}
+        {asFixed(summary?.beliefBasinStrengthScore ?? null, 3)}
+      </p>
+    </article>
+  );
+}
+
+function StructuralTrajectoryVisualizationCard({
+  rawSummary,
+  sanitizedSummary
+}: {
+  rawSummary: ConditionSummary | null;
+  sanitizedSummary: ConditionSummary | null;
+}) {
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setTick((prev) => (prev + 1) % 1000000);
+    }, 80);
+    return () => window.clearInterval(timerId);
+  }, []);
+
+  return (
+    <section className="latest-card trajectory-visual-card">
+      <h4>Structural Trajectory Visualization</h4>
+      <p className="muted">Basin Formation -&gt; Closure -&gt; Amplification. Basin depth and in-basin motion are driven by live telemetry.</p>
+      <div className="trajectory-grid">
+        <StructuralTrajectoryPane condition="raw" summary={rawSummary} tick={tick} />
+        <StructuralTrajectoryPane condition="sanitized" summary={sanitizedSummary} tick={tick + 9} />
+      </div>
+    </section>
+  );
+}
+
 function agentSlotsForSummary(summary: ConditionSummary): string[] {
   if (isCanonicalBeliefDriftProfile(summary.profile)) {
     return buildTriangleAgentSequence(summary.runConfig.agentCount).map((entry) => entry.slotLabel);
@@ -8901,6 +9043,8 @@ export default function HomePage() {
           </article>
 
           <article className="card run-card run-summary-card">
+            <StructuralTrajectoryVisualizationCard rawSummary={rawSummary} sanitizedSummary={sanitizedSummary} />
+
             <section className="latest-card live-snapshot-card">
               <h4>Live Snapshot</h4>
               <div className="live-snapshot-grid">

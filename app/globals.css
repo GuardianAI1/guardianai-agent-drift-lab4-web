@@ -1117,6 +1117,134 @@ button:disabled {
   background: #f7faf8;
 }
 
+.trajectory-visual-card {
+  border: 1px solid var(--line);
+  background: #f7faf8;
+  gap: 8px;
+}
+
+.trajectory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.trajectory-pane {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.trajectory-pane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.trajectory-pane h5 {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.phase-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 2px 8px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.phase-chip.phase-open {
+  background: #f1f4f2;
+  border-color: #d7ddd8;
+  color: #526158;
+}
+
+.phase-chip.phase-forming {
+  background: #edf5ef;
+  border-color: #c6d9cc;
+  color: #22563a;
+}
+
+.phase-chip.phase-closure {
+  background: #fdf6eb;
+  border-color: #e8ceb0;
+  color: #86551a;
+}
+
+.phase-chip.phase-amplifying {
+  background: #fef1f1;
+  border-color: #efc3c3;
+  color: #8f2222;
+}
+
+.trajectory-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fafdfb 0%, #edf4ef 100%);
+}
+
+.trajectory-basin {
+  fill: none;
+  stroke: #2f3a33;
+  stroke-width: 2.2;
+}
+
+.trajectory-pane.raw .trajectory-basin {
+  stroke: #7f3a3a;
+}
+
+.trajectory-pane.sanitized .trajectory-basin {
+  stroke: #2e6a4c;
+}
+
+.trajectory-threshold {
+  stroke: #2f3a33;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.trajectory-label {
+  fill: #5d665f;
+  font-size: 10px;
+  letter-spacing: 0.01em;
+  font-family: "Avenir Next", "Trebuchet MS", "Gill Sans", sans-serif;
+}
+
+.trajectory-ball {
+  fill: #39423c;
+}
+
+.trajectory-pane.raw .trajectory-ball {
+  fill: #8f2f2f;
+}
+
+.trajectory-pane.sanitized .trajectory-ball {
+  fill: #1f5b3f;
+}
+
+.trajectory-ball-shadow {
+  fill: rgba(0, 0, 0, 0.14);
+}
+
+.trajectory-meta {
+  margin: 0;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .live-snapshot-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1125,6 +1253,12 @@ button:disabled {
 
 .live-snapshot-grid p {
   margin: 0;
+}
+
+.run-summary-card .mono {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .trace-viewer-toolbar {
@@ -1564,6 +1698,10 @@ button:disabled {
 
 @media (max-width: 1100px) {
   .live-snapshot-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .trajectory-grid {
     grid-template-columns: 1fr;
   }
 
