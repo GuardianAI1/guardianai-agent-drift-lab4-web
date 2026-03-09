@@ -4282,6 +4282,26 @@ function buildTriangleAgentSequence(agentCount: number, topologyKind: Lab4Topolo
   }));
 }
 
+function roleLabelForScript(role: AgentRole): string {
+  if (role === "A") return "proposer";
+  if (role === "B") return "critic";
+  return "synthesizer";
+}
+
+function topologySequenceLine(topologyKind: Lab4TopologyKind | null, agentCount: number): string {
+  const resolvedTopologyKind: Lab4TopologyKind = topologyKind ?? "chain";
+  const sequence = buildTriangleAgentSequence(agentCount, resolvedTopologyKind);
+  const chain = sequence.map((entry) => `${entry.slotLabel}(${entry.role})`).join(" -> ");
+  if (resolvedTopologyKind === "ring") {
+    const first = sequence[0]?.slotLabel ?? "A";
+    return `Topology (${agentCount} agents): ${chain} -> ${first} (continuous cycle).`;
+  }
+  if (resolvedTopologyKind === "star") {
+    return `Topology (${agentCount} agents, hub-mediated): ${chain}.`;
+  }
+  return `Topology (${agentCount} agents): ${chain}.`;
+}
+
 function agentSequenceForProfile(profile: ExperimentProfile, agentCountOverride?: number): AgentSequenceEntry[] {
   if (profile === "three_agent_drift_amplifier") {
     return buildTriangleAgentSequence(3, null);
@@ -4368,15 +4388,11 @@ function profileRuleText(profile: ExperimentProfile, perturbationTurn = LAB3_PER
   if (isBeliefTriangle3AgentProfile(profile)) {
     if (isLab4TopologyProfile(profile)) {
       const topologyKind = lab4TopologyKindForProfile(profile);
+      const agentCount = agentCountOverride ?? triangleAgentCountForProfile(profile);
       const forcedDoubtCadence = forcedDoubtCadenceForProfile(profile);
       const reanchorCadence = reanchorCadenceForProfile(profile);
       const topologyLabel = topologyKind === "chain" ? "chain" : topologyKind === "ring" ? "ring" : "star";
-      const topologyLine =
-        topologyKind === "chain"
-          ? "Topology: A -> B -> C."
-          : topologyKind === "ring"
-            ? "Topology: A -> B -> C -> A (continuous cycle)."
-            : "Topology: star hub cycle A1 -> B -> A2 -> C (A is hub).";
+      const topologyLine = topologySequenceLine(topologyKind, agentCount);
       const propagationRule =
         topologyKind === "chain"
           ? "Propagation rule: only C updates claim at cycle boundary."
@@ -4515,26 +4531,31 @@ function scriptCardCopyForProfile(
     if (isLab4TopologyProfile(profile)) {
       const config = triangleConfigForProfile(profile);
       const topologyKind = lab4TopologyKindForProfile(profile);
+      const agentCount = agentCountOverride ?? triangleAgentCountForProfile(profile);
       const forcedDoubtCadence = forcedDoubtCadenceForProfile(profile);
       const reanchorCadence = reanchorCadenceForProfile(profile);
       const onsetCalibration = isLab4OnsetCalibrationProfile(profile);
       const confidenceRule = confidenceGrowthLineForProfile(profile).replace(/^Confidence (ratchet|update):\s*/i, "");
       const fixedPerturbationTurn = fixedPerturbationTurnForProfile(profile);
       const effectivePerturbationTurn = fixedPerturbationTurn ?? perturbationTurn;
+      const sequence = buildTriangleAgentSequence(agentCount, topologyKind);
+      const sequenceLoop = sequence.map((entry) => `${entry.slotLabel} (${roleLabelForScript(entry.role)})`).join(" -> ");
+      const sequenceStart = sequence[0]?.slotLabel ?? "A";
+      const confidenceSuffix = ` Confidence rule: ${confidenceRule}${
+        forcedDoubtCadence !== null
+          ? ` Every ${forcedDoubtCadence}th turn applies forced doubt (confidence cap ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}).`
+          : ""
+      }${
+        reanchorCadence !== null
+          ? ` Every ${reanchorCadence}th turn applies canonical refresh (claim re-anchor + confidence cap ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}).`
+          : ""
+      }`;
       const loop =
         topologyKind === "chain"
-          ? `A (proposer) -> B (critic) -> C (synthesizer), then repeat. Confidence rule: ${confidenceRule}${
-              forcedDoubtCadence !== null
-                ? ` Every ${forcedDoubtCadence}th turn applies forced doubt (confidence cap ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}).`
-                : ""
-            }${
-              reanchorCadence !== null
-                ? ` Every ${reanchorCadence}th turn applies canonical refresh (claim re-anchor + confidence cap ${LAB4_FORCED_DOUBT_CONFIDENCE_CAP.toFixed(2)}).`
-                : ""
-            }`
+          ? `${sequenceLoop}, then repeat.${confidenceSuffix}`
           : topologyKind === "ring"
-            ? "A -> B -> C -> A continuous recursive ring."
-            : "A1 (hub) -> B -> A2 (hub) -> C, then repeat.";
+            ? `${sequenceLoop} -> ${sequenceStart} continuous recursive ring.${confidenceSuffix}`
+            : `${sequenceLoop}, then repeat (hub-mediated).${confidenceSuffix}`;
       const summaryBase =
         topologyKind === "chain"
           ? `Turns 1-${Math.max(1, effectivePerturbationTurn - 1)} keep ground-truth value stable, turn ${effectivePerturbationTurn} injects a +10% value error once, and turns ${
@@ -4634,15 +4655,11 @@ function publicScriptTextForProfile(profile: ExperimentProfile, perturbationTurn
   if (isBeliefTriangle3AgentProfile(profile)) {
     if (isLab4TopologyProfile(profile)) {
       const topologyKind = lab4TopologyKindForProfile(profile);
+      const agentCount = agentCountOverride ?? triangleAgentCountForProfile(profile);
       const forcedDoubtCadence = forcedDoubtCadenceForProfile(profile);
       const reanchorCadence = reanchorCadenceForProfile(profile);
       const topologyLabel = topologyKind === "chain" ? "chain" : topologyKind === "ring" ? "ring" : "star";
-      const topologyLine =
-        topologyKind === "chain"
-          ? "Topology: A -> B -> C."
-          : topologyKind === "ring"
-            ? "Topology: A -> B -> C -> A (continuous cycle)."
-            : "Topology: A1 (hub) -> B -> A2 (hub) -> C.";
+      const topologyLine = topologySequenceLine(topologyKind, agentCount);
       const propagationRule =
         topologyKind === "chain"
           ? "Update rule: only C updates claim at cycle boundary."
@@ -8630,9 +8647,11 @@ export default function HomePage() {
   }
 
   function downloadActiveScriptSpec() {
-    const slug = selectedProfile.replace(/_/g, "-");
+    const baseId = exportProfileId(selectedProfile);
+    const safeBase = baseId.replace(/[^a-zA-Z0-9_-]+/g, "-");
+    const agentSuffix = supportsAgentCountParameter ? `-agents-${selectedAgentCount}` : "";
     const content = scriptDownloadBody(selectedProfile, selectedPerturbationTurn, selectedAgentCount);
-    downloadTextFile(`${slug}-script.md`, content, "text/markdown");
+    downloadTextFile(`${safeBase}${agentSuffix}-script.md`, content, "text/markdown");
   }
 
   function jumpToNewestTelemetryRow() {
