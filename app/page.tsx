@@ -7523,8 +7523,10 @@ export default function HomePage() {
       ? monitorBasinStateByTurn.get(monitorLatestTrace.turnIndex) ?? null
       : null;
   const liveTrajectoryDynamics = trajectoryDynamicsFromSummary(monitorSummary);
+  const basinFormationTurn = monitorSummary?.firstBasinFormationTurn ?? null;
   const closureOnsetTurn = monitorSummary?.firstStructuralDriftTurn ?? null;
   const amplificationOnsetTurn = monitorSummary?.firstDecisionErrorTurn ?? null;
+  const basinFormationDetected = basinFormationTurn !== null;
   const closureTimingDetected = closureOnsetTurn !== null;
   const amplificationTimingDetected = amplificationOnsetTurn !== null;
 
@@ -8666,6 +8668,12 @@ export default function HomePage() {
               <h4>Structural Signals</h4>
               <div className="structural-signals-grid">
                 <p className="mono">
+                  <strong>Basin Formation:</strong>{" "}
+                  <span className={basinFormationDetected ? "signal-bool signal-bool-detected" : "signal-bool signal-bool-missing"}>
+                    {basinFormationDetected ? "YES" : "NO"}
+                  </span>
+                </p>
+                <p className="mono">
                   <strong>Closure:</strong>{" "}
                   <span className={closureTimingDetected ? "signal-bool signal-bool-detected" : "signal-bool signal-bool-missing"}>
                     {closureTimingDetected ? "YES" : "NO"}
@@ -8678,16 +8686,25 @@ export default function HomePage() {
                   </span>
                 </p>
                 <p className="mono">
-                  <strong>Closure Timing:</strong>{" "}
+                  <strong>Basin Formation Phase:</strong>{" "}
+                  <span className={basinFormationDetected ? "signal-state signal-state-detected" : "signal-state signal-state-missing"}>
+                    {basinFormationDetected ? "DETECTED" : "NOT DETECTED"}
+                  </span>
+                </p>
+                <p className="mono">
+                  <strong>Closure Phase:</strong>{" "}
                   <span className={closureTimingDetected ? "signal-state signal-state-detected" : "signal-state signal-state-missing"}>
                     {closureTimingDetected ? "DETECTED" : "NOT DETECTED"}
                   </span>
                 </p>
                 <p className="mono">
-                  <strong>Amplification Timing:</strong>{" "}
+                  <strong>Amplification Phase:</strong>{" "}
                   <span className={amplificationTimingDetected ? "signal-state signal-state-detected" : "signal-state signal-state-missing"}>
                     {amplificationTimingDetected ? "DETECTED" : "NOT DETECTED"}
                   </span>
+                </p>
+                <p className="mono">
+                  <strong>Basin Formation Turn:</strong> {basinFormationTurn ?? "N/A"}
                 </p>
                 <p className="mono">
                   <strong>Closure Onset Turn:</strong> {closureOnsetTurn ?? "N/A"}

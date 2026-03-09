@@ -435,7 +435,7 @@ button:disabled {
 .run-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
-  gap: 10px;
+  gap: 12px;
   align-items: start;
 }
 
@@ -540,10 +540,17 @@ button:disabled {
 .run-summary-card {
   align-content: start;
   min-width: 0;
+  overflow-x: hidden;
 }
 
 .run-controls-card {
-  padding-right: 14px;
+  padding-right: 16px;
+  overflow-x: hidden;
+}
+
+.run-controls-card > *,
+.run-summary-card > * {
+  min-width: 0;
 }
 
 .run-controls-card .live-stream-card {
@@ -561,6 +568,7 @@ button:disabled {
   padding: 8px;
   display: grid;
   gap: 5px;
+  overflow-x: hidden;
 }
 
 .overview-lines p {
@@ -568,6 +576,7 @@ button:disabled {
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
+  line-height: 1.35;
 }
 
 .overview-lines code {
@@ -1018,6 +1027,7 @@ button:disabled {
   padding: 10px;
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .turn-card h4,
@@ -1073,6 +1083,7 @@ button:disabled {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .telemetry-actions {
@@ -1080,6 +1091,14 @@ button:disabled {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.telemetry-actions button {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
 }
 
 .telemetry-toggle {
