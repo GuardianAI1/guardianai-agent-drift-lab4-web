@@ -7523,6 +7523,10 @@ export default function HomePage() {
       ? monitorBasinStateByTurn.get(monitorLatestTrace.turnIndex) ?? null
       : null;
   const liveTrajectoryDynamics = trajectoryDynamicsFromSummary(monitorSummary);
+  const closureOnsetTurn = monitorSummary?.firstStructuralDriftTurn ?? null;
+  const amplificationOnsetTurn = monitorSummary?.firstDecisionErrorTurn ?? null;
+  const closureTimingDetected = closureOnsetTurn !== null;
+  const amplificationTimingDetected = amplificationOnsetTurn !== null;
 
   useEffect(() => {
     const panelNode = panel1MonitorRef.current;
@@ -8657,6 +8661,42 @@ export default function HomePage() {
                 />
               </div>
             </div>
+
+            <section className="structural-signals-card" aria-live="polite">
+              <h4>Structural Signals</h4>
+              <div className="structural-signals-grid">
+                <p className="mono">
+                  <strong>Closure:</strong>{" "}
+                  <span className={closureTimingDetected ? "signal-bool signal-bool-detected" : "signal-bool signal-bool-missing"}>
+                    {closureTimingDetected ? "YES" : "NO"}
+                  </span>
+                </p>
+                <p className="mono">
+                  <strong>Amplification:</strong>{" "}
+                  <span className={amplificationTimingDetected ? "signal-bool signal-bool-detected" : "signal-bool signal-bool-missing"}>
+                    {amplificationTimingDetected ? "YES" : "NO"}
+                  </span>
+                </p>
+                <p className="mono">
+                  <strong>Closure Timing:</strong>{" "}
+                  <span className={closureTimingDetected ? "signal-state signal-state-detected" : "signal-state signal-state-missing"}>
+                    {closureTimingDetected ? "DETECTED" : "NOT DETECTED"}
+                  </span>
+                </p>
+                <p className="mono">
+                  <strong>Amplification Timing:</strong>{" "}
+                  <span className={amplificationTimingDetected ? "signal-state signal-state-detected" : "signal-state signal-state-missing"}>
+                    {amplificationTimingDetected ? "DETECTED" : "NOT DETECTED"}
+                  </span>
+                </p>
+                <p className="mono">
+                  <strong>Closure Onset Turn:</strong> {closureOnsetTurn ?? "N/A"}
+                </p>
+                <p className="mono">
+                  <strong>Amplification Onset Turn:</strong> {amplificationOnsetTurn ?? "N/A"}
+                </p>
+              </div>
+            </section>
 
             <section className="overview-lines">
               <p className="tiny">

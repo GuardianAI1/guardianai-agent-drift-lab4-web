@@ -434,8 +434,8 @@ button:disabled {
 
 .run-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 8px;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  gap: 10px;
   align-items: start;
 }
 
@@ -494,10 +494,12 @@ button:disabled {
 
 .run-config-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 320px) repeat(5, minmax(115px, 150px));
-  gap: 8px;
-  justify-content: start;
+  grid-template-columns: minmax(220px, 1.9fr) repeat(5, minmax(108px, 1fr));
+  gap: 8px 10px;
+  justify-content: stretch;
   align-items: end;
+  width: 100%;
+  max-width: 100%;
 }
 
 .run-config-grid .field-block.wide {
@@ -537,6 +539,11 @@ button:disabled {
 .run-controls-card,
 .run-summary-card {
   align-content: start;
+  min-width: 0;
+}
+
+.run-controls-card {
+  padding-right: 14px;
 }
 
 .run-controls-card .live-stream-card {
@@ -558,6 +565,60 @@ button:disabled {
 
 .overview-lines p {
   margin: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.overview-lines code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.structural-signals-card {
+  border: 1px solid #d4ded8;
+  border-radius: 12px;
+  background: linear-gradient(155deg, #f7fcf8 0%, #edf5ef 100%);
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.structural-signals-card h4 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: #214a34;
+}
+
+.structural-signals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 14px;
+}
+
+.structural-signals-grid p {
+  margin: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.signal-bool,
+.signal-state {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.signal-bool-detected,
+.signal-state-detected {
+  color: #1f6f46;
+}
+
+.signal-bool-missing,
+.signal-state-missing {
+  color: #8a3434;
 }
 
 .measure-grid {
@@ -1515,5 +1576,9 @@ button:disabled {
   .run-field-temp,
   .run-field-delay {
     grid-column: auto;
+  }
+
+  .structural-signals-grid {
+    grid-template-columns: 1fr;
   }
 }
