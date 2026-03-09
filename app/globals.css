@@ -154,6 +154,7 @@ pre,
 .field-block {
   display: grid;
   gap: 3px;
+  min-width: 0;
 }
 
 .field-block.wide {
@@ -494,12 +495,16 @@ button:disabled {
 
 .run-config-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 1.9fr) repeat(6, minmax(98px, 1fr));
+  grid-template-columns: minmax(0, 2fr) repeat(6, minmax(0, 1fr));
   gap: 8px 10px;
   justify-content: stretch;
   align-items: end;
   width: 100%;
   max-width: 100%;
+}
+
+.run-config-grid .field-block {
+  min-width: 0;
 }
 
 .run-config-grid .field-block.wide {
