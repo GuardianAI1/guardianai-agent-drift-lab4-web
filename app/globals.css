@@ -494,7 +494,7 @@ button:disabled {
 
 .run-config-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 1.9fr) repeat(5, minmax(108px, 1fr));
+  grid-template-columns: minmax(220px, 1.9fr) repeat(6, minmax(98px, 1fr));
   gap: 8px 10px;
   justify-content: stretch;
   align-items: end;
@@ -518,16 +518,20 @@ button:disabled {
   grid-column: 3 / 4;
 }
 
-.run-field-tokens {
+.run-field-agents {
   grid-column: 4 / 5;
 }
 
-.run-field-temp {
+.run-field-tokens {
   grid-column: 5 / 6;
 }
 
-.run-field-delay {
+.run-field-temp {
   grid-column: 6 / 7;
+}
+
+.run-field-delay {
+  grid-column: 7 / 8;
 }
 
 .turn-field-controls {
@@ -1245,6 +1249,36 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
+.cycle-telemetry-card {
+  border: 1px solid var(--line);
+  background: #f7faf8;
+}
+
+.cycle-telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+}
+
+.cycle-telemetry-grid p {
+  margin: 0;
+}
+
+.cycle-timeline {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfdfb;
+  padding: 8px;
+  display: grid;
+  gap: 4px;
+}
+
+.cycle-timeline p {
+  margin: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .live-snapshot-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1701,6 +1735,10 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .cycle-telemetry-grid {
+    grid-template-columns: 1fr;
+  }
+
   .trajectory-grid {
     grid-template-columns: 1fr;
   }
@@ -1729,6 +1767,7 @@ button:disabled {
   .run-field-script,
   .run-field-turns,
   .run-field-perturbation,
+  .run-field-agents,
   .run-field-tokens,
   .run-field-temp,
   .run-field-delay {
