@@ -1453,6 +1453,9 @@ function isLab4TopologyProfile(profile: ExperimentProfile): boolean {
 }
 
 function profileSupportsPerturbationTurn(profile: ExperimentProfile): boolean {
+  if (isLab4TopologyProfile(profile)) {
+    return fixedPerturbationTurnForProfile(profile) === null;
+  }
   return (
     profile === "belief_drift_triangle_3agent_param" ||
     profile === "belief_drift_triangle_3agent_param_doubt" ||
