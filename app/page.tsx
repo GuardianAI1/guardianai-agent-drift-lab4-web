@@ -2947,7 +2947,10 @@ function isClientTransportErrorMessage(message: string): boolean {
     normalized.includes("networkerror") ||
     normalized.includes("fetch failed") ||
     normalized.includes("load failed") ||
-    normalized.includes("network connection was lost")
+    normalized.includes("network connection was lost") ||
+    normalized.includes("aborterror") ||
+    normalized.includes("operation was aborted") ||
+    normalized.includes("request was aborted")
   );
 }
 
