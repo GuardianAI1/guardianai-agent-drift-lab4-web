@@ -168,6 +168,35 @@ const UI_PROFILE_LIST: ExperimentProfile[] = [
   "belief_drift_triangle_9agent_isolation_param"
 ];
 
+// App4 defaults to the active LAB4/LAB5 profile set and keeps older sweeps behind an explicit toggle.
+const APP4_CORE_PROFILE_LIST: ExperimentProfile[] = [
+  "belief_drift_triangle_3agent",
+  "belief_drift_triangle_3agent_isolation",
+  "belief_drift_triangle_9agent_isolation",
+  "belief_drift_triangle_3agent_param",
+  "belief_drift_triangle_3agent_param_doubt",
+  "belief_drift_triangle_3agent_param_linear_002",
+  "belief_drift_triangle_3agent_param_linear_005",
+  "belief_drift_triangle_3agent_param_linear_008",
+  "belief_drift_triangle_3agent_param_logistic_005",
+  "belief_drift_triangle_3agent_param_linear_005_reanchor_10",
+  "belief_drift_triangle_3agent_param_linear_005_reanchor_20",
+  "belief_drift_triangle_3agent_param_linear_005_doubt_3",
+  "belief_drift_triangle_3agent_param_linear_005_doubt_7",
+  "belief_drift_triangle_3agent_isolation_param",
+  "belief_drift_triangle_9agent_isolation_param"
+];
+
+const APP4_ARCHIVE_PROFILE_LIST: ExperimentProfile[] = [
+  "belief_drift_triangle_3agent_param_linear_003",
+  "belief_drift_triangle_3agent_fixed_pt06_linear_005",
+  "belief_drift_triangle_3agent_fixed_pt12_linear_005",
+  "belief_drift_triangle_3agent_fixed_pt18_linear_005",
+  "belief_drift_triangle_3agent_fixed_pt24_linear_005"
+];
+
+const APP4_ARCHIVE_PROFILE_SET = new Set<ExperimentProfile>(APP4_ARCHIVE_PROFILE_LIST);
+
 const CONSENSUS_STANCES = ["support", "reject", "revise"] as const;
 const BELIEF_TRIANGLE_EVIDENCE_IDS = ["e1", "e2", "e3", "e4"] as const;
 const BELIEF_TRIANGLE_EVIDENCE_POOL: Record<string, string> = {
@@ -7597,6 +7626,7 @@ export default function HomePage() {
   const [temperature, setTemperature] = useState<number>(DEFAULT_TEMPERATURE);
   const [turnBudget, setTurnBudget] = useState<number>(DEFAULT_TURNS);
   const [perturbationTurn, setPerturbationTurn] = useState<number>(LAB3_PERTURBATION_TURN);
+  const [showArchivedProfiles, setShowArchivedProfiles] = useState<boolean>(false);
   const [agentCountSelection, setAgentCountSelection] = useState<number>(AGENT_COUNT_OPTIONS[0]);
   const [llmMaxTokens, setLlmMaxTokens] = useState<number>(DEFAULT_MAX_TOKENS);
   const [matrixReplicates, setMatrixReplicates] = useState<number>(DEFAULT_MATRIX_REPLICATES);
@@ -7664,11 +7694,22 @@ export default function HomePage() {
     setLabSurface(detectLabSurface(window.location.hostname));
   }, []);
 
+  useEffect(() => {
+    if (labSurface !== "app4" || showArchivedProfiles) return;
+    if (APP4_ARCHIVE_PROFILE_SET.has(selectedProfile)) {
+      setSelectedProfile(DEFAULT_PROFILE);
+    }
+  }, [labSurface, selectedProfile, showArchivedProfiles]);
+
   const effectiveProvider = useMemo(() => resolveProvider(apiProvider, apiKey), [apiProvider, apiKey]);
   const effectiveModelOptions = useMemo(() => modelOptionsForProvider(effectiveProvider), [effectiveProvider]);
   const websiteURL = (process.env.NEXT_PUBLIC_GUARDIAN_WEBSITE_URL ?? "https://guardianai.fr").trim();
   const githubURL = (process.env.NEXT_PUBLIC_GITHUB_REPO_URL ?? "https://github.com/GuardianAI1/guardianai-agent-drift-lab4-web").trim();
   const isLabSurfaceVariant = labSurface === "app2" || labSurface === "app3" || labSurface === "app4";
+  const selectableProfileList = useMemo(
+    () => (labSurface === "app4" && !showArchivedProfiles ? APP4_CORE_PROFILE_LIST : UI_PROFILE_LIST),
+    [labSurface, showArchivedProfiles]
+  );
   const brandSubtitle = isLabSurfaceVariant ? "Multi-Agent Lab" : "Multi-agent Drift Lab";
   const brandExperimentSubtitle =
     labSurface === "app3"
@@ -8603,6 +8644,7 @@ export default function HomePage() {
     setTemperature(DEFAULT_TEMPERATURE);
     setTurnBudget(DEFAULT_TURNS);
     setPerturbationTurn(LAB3_PERTURBATION_TURN);
+    setShowArchivedProfiles(false);
     setAgentCountSelection(AGENT_COUNT_OPTIONS[0]);
     setLlmMaxTokens(DEFAULT_MAX_TOKENS);
     setMatrixReplicates(DEFAULT_MATRIX_REPLICATES);
@@ -8866,12 +8908,23 @@ export default function HomePage() {
               <div className="field-block run-field-script">
                 <label>Script</label>
                 <select value={selectedProfile} onChange={(event) => setSelectedProfile(event.target.value as ExperimentProfile)} disabled={isRunning}>
-                  {UI_PROFILE_LIST.map((value) => (
+                  {selectableProfileList.map((value) => (
                     <option key={value} value={value}>
                       {PROFILE_LABELS[value]}
                     </option>
                   ))}
                 </select>
+                {labSurface === "app4" ? (
+                  <label className="tiny">
+                    <input
+                      type="checkbox"
+                      checked={showArchivedProfiles}
+                      onChange={(event) => setShowArchivedProfiles(event.target.checked)}
+                      disabled={isRunning}
+                    />{" "}
+                    Show archived scripts ({APP4_ARCHIVE_PROFILE_LIST.length})
+                  </label>
+                ) : null}
               </div>
 
               <div className="field-block run-field-turns">
