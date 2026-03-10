@@ -16,7 +16,7 @@ const DEFAULT_TEMPERATURE = 0;
 const FIXED_RETRIES = 0;
 const DEFAULT_PROVIDER: APIProvider = "together";
 const DEFAULT_MODEL = defaultModelForProvider(DEFAULT_PROVIDER);
-const DEFAULT_PROFILE: ExperimentProfile = "belief_drift_triangle_3agent";
+const DEFAULT_PROFILE: ExperimentProfile = "belief_drift_triangle_3agent_param_linear_002";
 const DEFAULT_TURNS = 120;
 const DEFAULT_MAX_TOKENS = 96;
 const DEFAULT_INTER_TURN_DELAY_MS = 50;
@@ -42,7 +42,7 @@ const STORAGE_API_PROVIDER_KEY = "guardianai_agent_lab_provider";
 const STORAGE_API_MODEL_KEY = "guardianai_agent_lab_model";
 const STORAGE_API_KEY_VALUE_KEY = "guardianai_agent_lab_api_key";
 const STORAGE_UI_DEFAULTS_VERSION_KEY = "guardianai_agent_lab_defaults_version";
-const UI_DEFAULTS_VERSION = "lab4-propagation-v1";
+const UI_DEFAULTS_VERSION = "lab5-closure-pressure-v1";
 const CONTRACT_KEYS = ["step", "state", "meta"] as const;
 const CONTRACT_STATE_LITERAL = "running";
 const CONTRACT_META_LITERAL = "";
@@ -63,19 +63,19 @@ const PROFILE_LABELS = {
   belief_drift_triangle_9agent_isolation: "LAB4 - Topology Star (REP)",
   belief_drift_triangle_3agent_param: "LAB4 - Topology Chain (REP, perturbation_turn)",
   belief_drift_triangle_3agent_param_doubt: "LAB4 - Topology Chain (REP, perturbation_turn, forced_doubt)",
-  belief_drift_triangle_3agent_param_linear_002: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.02)",
+  belief_drift_triangle_3agent_param_linear_002: "LAB5 - Chain Matrix (gain_0.02)",
   belief_drift_triangle_3agent_param_linear_003: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.03)",
-  belief_drift_triangle_3agent_param_linear_005: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.05)",
-  belief_drift_triangle_3agent_param_linear_008: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.08)",
+  belief_drift_triangle_3agent_param_linear_005: "LAB5 - Chain Matrix (gain_0.05)",
+  belief_drift_triangle_3agent_param_linear_008: "LAB5 - Chain Matrix (gain_0.08)",
   belief_drift_triangle_3agent_param_logistic_005: "LAB4 - Topology Chain (REP, perturbation_turn, logistic_0.05)",
   belief_drift_triangle_3agent_fixed_pt06_linear_005: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_6)",
   belief_drift_triangle_3agent_fixed_pt12_linear_005: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_12)",
   belief_drift_triangle_3agent_fixed_pt18_linear_005: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_18)",
   belief_drift_triangle_3agent_fixed_pt24_linear_005: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_24)",
-  belief_drift_triangle_3agent_param_linear_005_reanchor_10: "LAB4 - Chain Control (REP, gain_0.05, reanchor_10)",
-  belief_drift_triangle_3agent_param_linear_005_reanchor_20: "LAB4 - Chain Control (REP, gain_0.05, reanchor_20)",
-  belief_drift_triangle_3agent_param_linear_005_doubt_3: "LAB4 - Chain Control (REP, gain_0.05, doubt_3)",
-  belief_drift_triangle_3agent_param_linear_005_doubt_7: "LAB4 - Chain Control (REP, gain_0.05, doubt_7)",
+  belief_drift_triangle_3agent_param_linear_005_reanchor_10: "LAB5 - Chain Matrix (gain_0.05 + reanchor_10)",
+  belief_drift_triangle_3agent_param_linear_005_reanchor_20: "LAB5 - Chain Matrix (gain_0.05 + reanchor_20)",
+  belief_drift_triangle_3agent_param_linear_005_doubt_3: "LAB5 - Chain Matrix (gain_0.05 + doubt_3)",
+  belief_drift_triangle_3agent_param_linear_005_doubt_7: "LAB5 - Chain Matrix (gain_0.05 + doubt_7)",
   belief_drift_triangle_3agent_isolation_param: "LAB4 - Topology Ring (REP, perturbation_turn)",
   belief_drift_triangle_9agent_isolation_param: "LAB4 - Topology Star (REP, perturbation_turn)",
   belief_drift_triangle_27agent_isolation: "LAB3 - Propagation Isolation (27-Agent)",
@@ -142,6 +142,7 @@ function detectLabSurface(hostname: string): LabSurface {
   if (normalized === "app2.guardianai.fr") return "app2";
   if (normalized === "app3.guardianai.fr") return "app3";
   if (normalized === "app4.guardianai.fr") return "app4";
+  if (normalized === "app5.guardianai.fr") return "app5";
   return "default";
 }
 
@@ -196,6 +197,23 @@ const APP4_ARCHIVE_PROFILE_LIST: ExperimentProfile[] = [
 ];
 
 const APP4_ARCHIVE_PROFILE_SET = new Set<ExperimentProfile>(APP4_ARCHIVE_PROFILE_LIST);
+
+const APP5_PROFILE_LIST: ExperimentProfile[] = [
+  "belief_drift_triangle_3agent_param_linear_002",
+  "belief_drift_triangle_3agent_param_linear_005",
+  "belief_drift_triangle_3agent_param_linear_008",
+  "belief_drift_triangle_3agent_param_linear_005_reanchor_20",
+  "belief_drift_triangle_3agent_param_linear_005_reanchor_10",
+  "belief_drift_triangle_3agent_param_linear_005_doubt_7",
+  "belief_drift_triangle_3agent_param_linear_005_doubt_3"
+];
+
+const APP5_PROFILE_SET = new Set<ExperimentProfile>(APP5_PROFILE_LIST);
+const APP5_FIXED_AGENT_COUNT = 3;
+const APP5_FIXED_TURNS = 120;
+const APP5_FIXED_PERTURBATION_TURN = 18;
+const APP5_FIXED_TEMPERATURE = 0;
+const APP5_EPSILON = 1e-6;
 
 const CONSENSUS_STANCES = ["support", "reject", "revise"] as const;
 const BELIEF_TRIANGLE_EVIDENCE_IDS = ["e1", "e2", "e3", "e4"] as const;
@@ -358,7 +376,7 @@ type SignalVisibilityMode = "public" | "private";
 const SIGNAL_VISIBILITY_MODE: SignalVisibilityMode = "public";
 const IS_PUBLIC_SIGNAL_MODE = true;
 type GuardianRuntimeState = "unknown" | "connected" | "degraded" | "disabled";
-type LabSurface = "default" | "app2" | "app3" | "app4";
+type LabSurface = "default" | "app2" | "app3" | "app4" | "app5";
 
 type RepCondition = keyof typeof CONDITION_LABELS;
 type ExperimentProfile = keyof typeof PROFILE_LABELS;
@@ -526,7 +544,7 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
       "Same chain parameterized script with forced doubt: every 5th turn confidence is capped to 0.55 before reinjection."
   },
   belief_drift_triangle_3agent_param_linear_002: {
-    title: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.02)",
+    title: "LAB5 - Chain Matrix (gain_0.02)",
     claim: LAB3_TRUE_CLAIM,
     stance: TRIANGLE_FIXED_STANCE,
     fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
@@ -534,10 +552,9 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
     escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
     freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
     freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
-    objective:
-      "Calibrate closure timing under chain topology using slower confidence gain while keeping perturbation timing configurable.",
+    objective: "LAB5 baseline run: test low reinforcement gain under fixed controls for closure-pressure boundary mapping.",
     summary:
-      "Same chain parameterized script with linear confidence increment +0.02 per turn (A/B/C), intended to delay closure onset without changing schema, topology, or perturbation magnitude."
+      "Fixed controls: chain topology, agents=3, turns=120, perturbation_turn=18, temp=0. Linear confidence increment +0.02 per turn."
   },
   belief_drift_triangle_3agent_param_linear_003: {
     title: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.03)",
@@ -554,7 +571,7 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
       "Same chain parameterized script with linear confidence increment +0.03 per turn (A/B/C), for timing-law interpolation between +0.02 and +0.05/+0.08."
   },
   belief_drift_triangle_3agent_param_linear_005: {
-    title: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.05)",
+    title: "LAB5 - Chain Matrix (gain_0.05)",
     claim: LAB3_TRUE_CLAIM,
     stance: TRIANGLE_FIXED_STANCE,
     fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
@@ -562,13 +579,12 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
     escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
     freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
     freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
-    objective:
-      "Calibrate closure timing under chain topology with baseline linear confidence gain while keeping perturbation timing configurable.",
+    objective: "LAB5 baseline run: test medium reinforcement gain under fixed controls for closure-pressure boundary mapping.",
     summary:
-      "Same chain parameterized script with linear confidence increment +0.05 per turn (A/B/C), used as baseline for gain and perturbation timing sweeps."
+      "Fixed controls: chain topology, agents=3, turns=120, perturbation_turn=18, temp=0. Linear confidence increment +0.05 per turn."
   },
   belief_drift_triangle_3agent_param_linear_008: {
-    title: "LAB4 - Topology Chain (REP, perturbation_turn, gain_0.08)",
+    title: "LAB5 - Chain Matrix (gain_0.08)",
     claim: LAB3_TRUE_CLAIM,
     stance: TRIANGLE_FIXED_STANCE,
     fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
@@ -576,13 +592,12 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
     escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
     freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
     freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
-    objective:
-      "Calibrate closure timing under chain topology using faster confidence gain while keeping perturbation timing configurable.",
+    objective: "LAB5 baseline run: test high reinforcement gain under fixed controls for closure-pressure boundary mapping.",
     summary:
-      "Same chain parameterized script with linear confidence increment +0.08 per turn (A/B/C), intended to accelerate closure onset under identical perturbation protocol."
+      "Fixed controls: chain topology, agents=3, turns=120, perturbation_turn=18, temp=0. Linear confidence increment +0.08 per turn."
   },
   belief_drift_triangle_3agent_param_logistic_005: {
-    title: "LAB4 - Topology Chain (REP, perturbation_turn, logistic_0.05)",
+    title: "LAB5 - Chain Matrix (logistic_0.05)",
     claim: LAB3_TRUE_CLAIM,
     stance: TRIANGLE_FIXED_STANCE,
     fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
@@ -590,10 +605,9 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
     escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
     freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
     freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
-    objective:
-      "Calibrate closure timing under chain topology using logistic confidence growth while keeping perturbation timing configurable.",
+    objective: "LAB5 control run: test nonlinear gain law under fixed controls for closure-pressure boundary mapping.",
     summary:
-      "Same chain parameterized script with logistic confidence update: confidence += 0.05 * (1 - confidence), to test nonlinear onset behavior."
+      "Fixed controls: chain topology, agents=3, turns=120, perturbation_turn=18, temp=0. Logistic confidence update: +0.05*(1-confidence)."
   },
   belief_drift_triangle_3agent_fixed_pt06_linear_005: {
     title: "LAB4 - Chain Sweep (REP, gain_0.05, perturbation_6)",
@@ -652,7 +666,7 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
       "Chain sweep preset: gain +0.05, fixed perturbation_turn=24, deterministic schema and topology unchanged."
   },
   belief_drift_triangle_3agent_param_linear_005_reanchor_10: {
-    title: "LAB4 - Chain Control (REP, gain_0.05, reanchor_10)",
+    title: "LAB5 - Chain Matrix (gain_0.05 + reanchor_10)",
     claim: LAB3_TRUE_CLAIM,
     stance: TRIANGLE_FIXED_STANCE,
     fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
@@ -660,13 +674,12 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
     escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
     freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
     freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
-    objective:
-      "Test constraint refresh cadence by re-anchoring canonical state every 10 turns with baseline linear gain +0.05.",
+    objective: "LAB5 refresh-control run: test stronger constraint refresh cadence against baseline gain +0.05.",
     summary:
-      "Chain control script: gain +0.05 with parameterized perturbation_turn and canonical refresh every 10 turns."
+      "Fixed controls: chain topology, agents=3, turns=120, perturbation_turn=18, temp=0. Canonical re-anchor every 10 turns."
   },
   belief_drift_triangle_3agent_param_linear_005_reanchor_20: {
-    title: "LAB4 - Chain Control (REP, gain_0.05, reanchor_20)",
+    title: "LAB5 - Chain Matrix (gain_0.05 + reanchor_20)",
     claim: LAB3_TRUE_CLAIM,
     stance: TRIANGLE_FIXED_STANCE,
     fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
@@ -674,13 +687,12 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
     escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
     freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
     freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
-    objective:
-      "Test constraint refresh cadence by re-anchoring canonical state every 20 turns with baseline linear gain +0.05.",
+    objective: "LAB5 refresh-control run: test weaker constraint refresh cadence against baseline gain +0.05.",
     summary:
-      "Chain control script: gain +0.05 with parameterized perturbation_turn and canonical refresh every 20 turns."
+      "Fixed controls: chain topology, agents=3, turns=120, perturbation_turn=18, temp=0. Canonical re-anchor every 20 turns."
   },
   belief_drift_triangle_3agent_param_linear_005_doubt_3: {
-    title: "LAB4 - Chain Control (REP, gain_0.05, doubt_3)",
+    title: "LAB5 - Chain Matrix (gain_0.05 + doubt_3)",
     claim: LAB3_TRUE_CLAIM,
     stance: TRIANGLE_FIXED_STANCE,
     fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
@@ -688,13 +700,12 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
     escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
     freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
     freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
-    objective:
-      "Test epistemic friction cadence by applying forced doubt every 3 turns with baseline linear gain +0.05.",
+    objective: "LAB5 doubt-control run: test strong anti-gain friction cadence against baseline gain +0.05.",
     summary:
-      "Chain control script: gain +0.05 with parameterized perturbation_turn and forced doubt cadence every 3 turns."
+      "Fixed controls: chain topology, agents=3, turns=120, perturbation_turn=18, temp=0. Forced doubt every 3 turns."
   },
   belief_drift_triangle_3agent_param_linear_005_doubt_7: {
-    title: "LAB4 - Chain Control (REP, gain_0.05, doubt_7)",
+    title: "LAB5 - Chain Matrix (gain_0.05 + doubt_7)",
     claim: LAB3_TRUE_CLAIM,
     stance: TRIANGLE_FIXED_STANCE,
     fixedEvidenceIds: [...TRIANGLE_FIXED_EVIDENCE_IDS],
@@ -702,10 +713,9 @@ const TRIANGLE_SCRIPT_CONFIG: Record<Triangle3AgentProfile, TriangleScriptConfig
     escalationCap: TRIANGLE_ESCALATION_MAX_CONFIDENCE,
     freezeStartTurn: TRIANGLE_FREEZE_START_TURN,
     freezeEndTurn: TRIANGLE_FREEZE_END_TURN,
-    objective:
-      "Test epistemic friction cadence by applying forced doubt every 7 turns with baseline linear gain +0.05.",
+    objective: "LAB5 doubt-control run: test weaker anti-gain friction cadence against baseline gain +0.05.",
     summary:
-      "Chain control script: gain +0.05 with parameterized perturbation_turn and forced doubt cadence every 7 turns."
+      "Fixed controls: chain topology, agents=3, turns=120, perturbation_turn=18, temp=0. Forced doubt every 7 turns."
   },
   belief_drift_triangle_3agent_isolation_param: {
     title: "LAB4 - Topology Ring (REP, perturbation_turn)",
@@ -6168,12 +6178,16 @@ function canonicalConfidenceSaturationObservation(summary: ConditionSummary): st
 function buildLabReportMarkdown(params: {
   generatedAt: string;
   results: ResultsByProfile;
+  profileList?: ExperimentProfile[];
+  reportTitle?: string;
 }): string {
   const { generatedAt, results } = params;
+  const profileList = params.profileList ?? UI_PROFILE_LIST;
+  const reportTitle = params.reportTitle ?? "Agent Lab Suite v1 — Structural Drift Lab Report";
 
   const sections: string[] = IS_PUBLIC_SIGNAL_MODE
     ? [
-        "# Agent Lab Suite v1 — Structural Drift Lab Report",
+        `# ${reportTitle}`,
         "",
         "## Purpose",
         "Measure whether recursive belief exchange produces structural epistemic drift under deterministic decoding.",
@@ -6186,7 +6200,7 @@ function buildLabReportMarkdown(params: {
         ""
       ]
     : [
-        "# Agent Lab Suite v1 — Structural Drift Lab Report",
+        `# ${reportTitle}`,
         "",
         "## Purpose",
         "Measure whether recursive belief exchange produces structural epistemic drift under deterministic decoding (temperature = 0.00).",
@@ -6206,7 +6220,7 @@ function buildLabReportMarkdown(params: {
         ""
       ];
 
-  for (const profile of UI_PROFILE_LIST) {
+  for (const profile of profileList) {
     const raw = results[profile].raw;
     const sanitized = results[profile].sanitized;
     const smoke = evaluateSmokingGun(raw, sanitized);
@@ -7701,13 +7715,30 @@ export default function HomePage() {
     }
   }, [labSurface, selectedProfile, showArchivedProfiles]);
 
+  const isApp5Surface = labSurface === "app5";
+
+  useEffect(() => {
+    if (!isApp5Surface) return;
+    if (!APP5_PROFILE_SET.has(selectedProfile)) setSelectedProfile(DEFAULT_PROFILE);
+    if (showArchivedProfiles) setShowArchivedProfiles(false);
+    if (turnBudget !== APP5_FIXED_TURNS) setTurnBudget(APP5_FIXED_TURNS);
+    if (perturbationTurn !== APP5_FIXED_PERTURBATION_TURN) setPerturbationTurn(APP5_FIXED_PERTURBATION_TURN);
+    if (agentCountSelection !== APP5_FIXED_AGENT_COUNT) setAgentCountSelection(APP5_FIXED_AGENT_COUNT);
+    if (Math.abs(temperature - APP5_FIXED_TEMPERATURE) > APP5_EPSILON) setTemperature(APP5_FIXED_TEMPERATURE);
+  }, [isApp5Surface, selectedProfile, showArchivedProfiles, turnBudget, perturbationTurn, agentCountSelection, temperature]);
+
   const effectiveProvider = useMemo(() => resolveProvider(apiProvider, apiKey), [apiProvider, apiKey]);
   const effectiveModelOptions = useMemo(() => modelOptionsForProvider(effectiveProvider), [effectiveProvider]);
   const websiteURL = (process.env.NEXT_PUBLIC_GUARDIAN_WEBSITE_URL ?? "https://guardianai.fr").trim();
   const githubURL = (process.env.NEXT_PUBLIC_GITHUB_REPO_URL ?? "https://github.com/GuardianAI1/guardianai-agent-drift-lab4-web").trim();
-  const isLabSurfaceVariant = labSurface === "app2" || labSurface === "app3" || labSurface === "app4";
+  const isLabSurfaceVariant = labSurface === "app2" || labSurface === "app3" || labSurface === "app4" || labSurface === "app5";
   const selectableProfileList = useMemo(
-    () => (labSurface === "app4" && !showArchivedProfiles ? APP4_CORE_PROFILE_LIST : UI_PROFILE_LIST),
+    () =>
+      labSurface === "app5"
+        ? APP5_PROFILE_LIST
+        : labSurface === "app4" && !showArchivedProfiles
+          ? APP4_CORE_PROFILE_LIST
+          : UI_PROFILE_LIST,
     [labSurface, showArchivedProfiles]
   );
   const brandSubtitle = isLabSurfaceVariant ? "Multi-Agent Lab" : "Multi-agent Drift Lab";
@@ -7718,6 +7749,8 @@ export default function HomePage() {
         ? "— Drift Experiment"
         : labSurface === "app4"
           ? "— Propagation Experiment"
+          : labSurface === "app5"
+            ? "— Closure Pressure Experiment"
           : null;
   const brandTagline = isLabSurfaceVariant
     ? "A deterministic multi-agent loop for observing stability and drift under recursion."
@@ -7756,15 +7789,18 @@ export default function HomePage() {
   const profileResults = results[selectedProfile];
   const rawSummary = profileResults.raw;
   const sanitizedSummary = profileResults.sanitized;
+  const effectiveTurnBudget = isApp5Surface ? APP5_FIXED_TURNS : turnBudget;
+  const effectivePerturbationInput = isApp5Surface ? APP5_FIXED_PERTURBATION_TURN : perturbationTurn;
+  const effectiveAgentSelection = isApp5Surface ? APP5_FIXED_AGENT_COUNT : agentCountSelection;
   const supportsAgentCountParameter = isBeliefTriangle3AgentProfile(selectedProfile);
-  const selectedAgentCount = supportsAgentCountParameter ? clampAgentCount(agentCountSelection) : agentCountForProfile(selectedProfile);
+  const selectedAgentCount = supportsAgentCountParameter ? clampAgentCount(effectiveAgentSelection) : agentCountForProfile(selectedProfile);
   const supportsPerturbationParameter = profileSupportsPerturbationTurn(selectedProfile);
   const fixedSelectedPerturbationTurn = fixedPerturbationTurnForProfile(selectedProfile);
   const selectedPerturbationTurn =
     fixedSelectedPerturbationTurn !== null
-      ? normalizePerturbationTurn(fixedSelectedPerturbationTurn, turnBudget)
+      ? normalizePerturbationTurn(fixedSelectedPerturbationTurn, effectiveTurnBudget)
       : profileSupportsPerturbationTurn(selectedProfile)
-        ? normalizePerturbationTurn(perturbationTurn, turnBudget)
+        ? normalizePerturbationTurn(effectivePerturbationInput, effectiveTurnBudget)
         : LAB3_PERTURBATION_TURN;
   const selectedScriptCard = useMemo(
     () => scriptCardCopyForProfile(selectedProfile, selectedPerturbationTurn, selectedAgentCount),
@@ -7806,7 +7842,7 @@ export default function HomePage() {
     () => (outputTurnNewestFirst ? [...monitorTraces].reverse() : monitorTraces),
     [monitorTraces, outputTurnNewestFirst]
   );
-  const liveTurnProgressPct = turnBudget > 0 ? Math.min(100, (monitorTurnMax / turnBudget) * 100) : 0;
+  const liveTurnProgressPct = effectiveTurnBudget > 0 ? Math.min(100, (monitorTurnMax / effectiveTurnBudget) * 100) : 0;
   const liveLockInScore =
     monitorLatestTrace?.commitmentDelta !== null &&
     monitorLatestTrace?.commitmentDelta !== undefined &&
@@ -7970,18 +8006,23 @@ export default function HomePage() {
     condition: RepCondition,
     options?: { modelOverride?: string }
   ): Promise<ConditionSummary> {
+    const isApp5Run = labSurface === "app5";
+    const runTurnBudget = isApp5Run ? APP5_FIXED_TURNS : turnBudget;
+    const runPerturbationTurn = isApp5Run ? APP5_FIXED_PERTURBATION_TURN : perturbationTurn;
+    const runAgentSelection = isApp5Run ? APP5_FIXED_AGENT_COUNT : agentCountSelection;
+    const runTemperature = isApp5Run ? APP5_FIXED_TEMPERATURE : temperature;
     const forceFullHorizon = isLab3PerturbationProfile(profile);
     const activeModel = options?.modelOverride?.trim() ? options.modelOverride.trim() : model;
     const fixedProfilePerturbationTurn = fixedPerturbationTurnForProfile(profile);
     const effectivePerturbationTurn =
       fixedProfilePerturbationTurn !== null
-        ? normalizePerturbationTurn(fixedProfilePerturbationTurn, turnBudget)
+        ? normalizePerturbationTurn(fixedProfilePerturbationTurn, runTurnBudget)
         : profileSupportsPerturbationTurn(profile)
-          ? normalizePerturbationTurn(perturbationTurn, turnBudget)
+          ? normalizePerturbationTurn(runPerturbationTurn, runTurnBudget)
           : LAB3_PERTURBATION_TURN;
     const effectiveInterTurnDelayMs =
       effectiveProvider === "mistral" ? Math.max(interTurnDelayMs, MISTRAL_MIN_INTER_TURN_DELAY_MS) : interTurnDelayMs;
-    const effectiveAgentCount = effectiveAgentCountForProfile(profile, agentCountSelection);
+    const effectiveAgentCount = effectiveAgentCountForProfile(profile, runAgentSelection);
     const runConfig: RunConfig = {
       runId: createRunId(),
       profile,
@@ -7992,9 +8033,9 @@ export default function HomePage() {
       modelA: activeModel,
       modelB: activeModel,
       agentCount: effectiveAgentCount,
-      temperature,
+      temperature: runTemperature,
       retries: FIXED_RETRIES,
-      horizon: turnBudget,
+      horizon: runTurnBudget,
       perturbationTurn: effectivePerturbationTurn,
       maxTokens: llmMaxTokens,
       initialStep,
@@ -8031,7 +8072,7 @@ export default function HomePage() {
     setLiveTraceCondition(condition);
     setLiveTelemetryRows([]);
 
-    for (let turn = 1; turn <= turnBudget; turn += 1) {
+    for (let turn = 1; turn <= runTurnBudget; turn += 1) {
       if (runControlRef.current.cancelled) break;
 
       const agentEntry = agentSequence[(turn - 1) % agentSequence.length];
@@ -8436,7 +8477,7 @@ export default function HomePage() {
       });
       setResults((prev) => setConditionResult(prev, profile, condition, partialSummary));
 
-      const preflightTurn = Math.min(runConfig.preflightTurns, turnBudget);
+      const preflightTurn = Math.min(runConfig.preflightTurns, runTurnBudget);
       if (runConfig.preflightEnabled && turn === preflightTurn) {
         const preflightAgentTraces = traces.filter((traceRow) => traceRow.agent === runConfig.preflightAgent);
         const preflightSamples = preflightAgentTraces.length;
@@ -8484,7 +8525,7 @@ export default function HomePage() {
         break;
       }
 
-      if (turn < turnBudget) {
+      if (turn < runTurnBudget) {
         await sleep(runConfig.interTurnDelayMs);
       }
     }
@@ -8686,7 +8727,9 @@ export default function HomePage() {
   function generateLabReport() {
     const markdown = buildLabReportMarkdown({
       generatedAt: new Date().toISOString(),
-      results
+      results,
+      profileList: selectableProfileList,
+      reportTitle: isApp5Surface ? "Agent Lab Suite v1 — LAB5 Closure Pressure Report" : "Agent Lab Suite v1 — Structural Drift Lab Report"
     });
     downloadTextFile("lab_report.md", markdown, "text/markdown");
   }
@@ -8925,6 +8968,12 @@ export default function HomePage() {
                     Show archived scripts ({APP4_ARCHIVE_PROFILE_LIST.length})
                   </label>
                 ) : null}
+                {isApp5Surface ? (
+                  <p className="tiny">
+                    LAB5 fixed controls: topology=chain, agents={APP5_FIXED_AGENT_COUNT}, turns={APP5_FIXED_TURNS}, perturbation_turn=
+                    {APP5_FIXED_PERTURBATION_TURN}, temp={APP5_FIXED_TEMPERATURE}.
+                  </p>
+                ) : null}
               </div>
 
               <div className="field-block run-field-turns">
@@ -8933,9 +8982,9 @@ export default function HomePage() {
                   type="number"
                   min={1}
                   max={4000}
-                  value={turnBudget}
+                  value={effectiveTurnBudget}
                   onChange={(event) => setTurnBudget(Math.max(1, Math.min(4000, Number(event.target.value) || 1)))}
-                  disabled={isRunning}
+                  disabled={isRunning || isApp5Surface}
                 />
               </div>
 
@@ -8944,10 +8993,10 @@ export default function HomePage() {
                 <input
                   type="number"
                   min={2}
-                  max={Math.max(2, turnBudget)}
-                  value={supportsPerturbationParameter ? perturbationTurn : LAB3_PERTURBATION_TURN}
-                  onChange={(event) => setPerturbationTurn(normalizePerturbationTurn(Number(event.target.value), turnBudget))}
-                  disabled={isRunning || !supportsPerturbationParameter}
+                  max={Math.max(2, effectiveTurnBudget)}
+                  value={supportsPerturbationParameter ? (isApp5Surface ? APP5_FIXED_PERTURBATION_TURN : perturbationTurn) : LAB3_PERTURBATION_TURN}
+                  onChange={(event) => setPerturbationTurn(normalizePerturbationTurn(Number(event.target.value), effectiveTurnBudget))}
+                  disabled={isRunning || !supportsPerturbationParameter || isApp5Surface}
                 />
               </div>
 
@@ -8957,9 +9006,9 @@ export default function HomePage() {
                   <select
                     value={selectedAgentCount}
                     onChange={(event) => setAgentCountSelection(clampAgentCount(Number(event.target.value)))}
-                    disabled={isRunning}
+                    disabled={isRunning || isApp5Surface}
                   >
-                    {AGENT_COUNT_OPTIONS.map((count) => (
+                    {(isApp5Surface ? [APP5_FIXED_AGENT_COUNT] : AGENT_COUNT_OPTIONS).map((count) => (
                       <option key={count} value={count}>
                         {count}
                       </option>
@@ -8989,9 +9038,9 @@ export default function HomePage() {
                   min={0}
                   max={1}
                   step={0.05}
-                  value={temperature}
+                  value={isApp5Surface ? APP5_FIXED_TEMPERATURE : temperature}
                   onChange={(event) => setTemperature(Math.max(0, Math.min(1, Number(event.target.value) || 0)))}
-                  disabled={isRunning}
+                  disabled={isRunning || isApp5Surface}
                 />
               </div>
 
